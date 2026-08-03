@@ -5433,4 +5433,180 @@ h1.font-display .text-accent, #biyou-nails-v2 h1.font-display .text-accent { col
 }
 </style><style id="biyou-photo-marquee">.photo-marquee-viewport{overflow:hidden;-webkit-mask-image:linear-gradient(to right, transparent, black 8%, black 92%, transparent);mask-image:linear-gradient(to right, transparent, black 8%, black 92%, transparent);}.photo-marquee{animation:biyou-photo-scroll 22s linear infinite;}.photo-marquee:hover{animation-play-state:paused;}@keyframes biyou-photo-scroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}</style>
 
+
+<style id="biyou-lava-lamp">
+/* ===== fundo lava lamp: azul, rosa e roxo da paleta ===== */
+html, body { background: transparent !important; }
+#biyou-lava {
+  position: fixed; inset: 0; z-index: -1; overflow: hidden;
+  background: linear-gradient(160deg, #FFFBF6 0%, #FDF3FA 50%, #F4F9FE 100%);
+}
+#biyou-lava::after { content:""; position:absolute; inset:0; background: rgba(255,251,246,.45); }
+#biyou-lava .blob {
+  position: absolute; border-radius: 50%;
+  filter: blur(80px); opacity: .5; will-change: transform;
+}
+#biyou-lava .b1 { width: 46vmax; height: 46vmax; left: -8vmax; top: -6vmax;
+  background: radial-gradient(circle at 35% 35%, #6EC4E8, rgba(110,196,232,0) 70%);
+  animation: lava1 11s ease-in-out infinite alternate; }
+#biyou-lava .b2 { width: 42vmax; height: 42vmax; right: -10vmax; top: 8vmax;
+  background: radial-gradient(circle at 40% 40%, #F294CD, rgba(242,148,205,0) 70%);
+  animation: lava2 9s ease-in-out infinite alternate; }
+#biyou-lava .b3 { width: 50vmax; height: 50vmax; left: 18vmax; bottom: -14vmax;
+  background: radial-gradient(circle at 45% 45%, #B896D3, rgba(184,150,211,0) 70%);
+  animation: lava3 13s ease-in-out infinite alternate; }
+#biyou-lava .b4 { width: 34vmax; height: 34vmax; right: 4vmax; bottom: -8vmax;
+  background: radial-gradient(circle at 40% 40%, #8B5CF6, rgba(139,92,246,0) 70%);
+  opacity: .35; animation: lava4 10s ease-in-out infinite alternate; }
+@keyframes lava1 { 0%{transform:translate3d(0,0,0) scale(1)} 50%{transform:translate3d(22vw,14vh,0) scale(1.25)} 100%{transform:translate3d(6vw,34vh,0) scale(.9)} }
+@keyframes lava2 { 0%{transform:translate3d(0,0,0) scale(1.1)} 50%{transform:translate3d(-26vw,22vh,0) scale(.85)} 100%{transform:translate3d(-10vw,46vh,0) scale(1.2)} }
+@keyframes lava3 { 0%{transform:translate3d(0,0,0) scale(.95)} 50%{transform:translate3d(-20vw,-26vh,0) scale(1.2)} 100%{transform:translate3d(16vw,-44vh,0) scale(1)} }
+@keyframes lava4 { 0%{transform:translate3d(0,0,0) scale(1)} 50%{transform:translate3d(-16vw,-20vh,0) scale(1.3)} 100%{transform:translate3d(-30vw,-6vh,0) scale(.9)} }
+@media (prefers-reduced-motion: reduce) { #biyou-lava::after { content:""; position:absolute; inset:0; background: rgba(255,251,246,.45); }
+#biyou-lava .blob { animation: none; } }
+</style>
+
+<style id="biyou-photo-carousel">
+/* ===== carrossel de fotos: menor, mais lento e com navegacao ===== */
+#fotos .photo-marquee { animation: none !important; }
+#fotos .photo-carousel-wrap { position: relative; }
+#fotos .photo-marquee-viewport { overflow: hidden; }
+#fotos .photo-marquee img {
+  height: 9.5rem !important; width: 9.5rem !important;
+  border-radius: 1rem; object-fit: cover; flex: 0 0 auto;
+  box-shadow: 0 6px 18px rgba(36,31,38,.10);
+}
+@media (min-width: 640px) { #fotos .photo-marquee img { height: 12.5rem !important; width: 12.5rem !important; } }
+#fotos .carousel-btn {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 5;
+  width: 2.5rem; height: 2.5rem; border-radius: 999px; border: 1px solid rgba(184,150,211,.4);
+  background: rgba(255,255,255,.85); color: #241F26; font-size: 1.1rem; line-height: 1;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(36,31,38,.12); transition: background .2s, color .2s;
+}
+#fotos .carousel-btn:hover { background: #6EC4E8 !important; border-color: #6EC4E8 !important; color: #123 !important; }
+#fotos .carousel-btn.prev { left: .5rem; }
+#fotos .carousel-btn.next { right: .5rem; }
+</style>
+
+<script id="biyou-lava-carousel-js">
+(function(){
+  // fundo lava lamp
+  if(!document.getElementById('biyou-lava')){
+    var lava=document.createElement('div');
+    lava.id='biyou-lava';
+    lava.innerHTML='<span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span><span class="blob b4"></span>';
+    document.body.insertBefore(lava, document.body.firstChild);
+  }
+
+  var DRIVE_ENDPOINT='https://script.google.com/macros/s/AKfycbwSd-B8DaZXZGwTIpfxJbFX8KC-kEBFgfSScvoevPyXb-1delPBWPCzDUCupZrHAu3ZwA/exec';
+
+  var track=document.querySelector('#fotos .photo-marquee');
+  var viewport=document.querySelector('#fotos .photo-marquee-viewport');
+  if(!track||!viewport) return;
+
+  // botoes de navegacao
+  var wrap=document.createElement('div');
+  wrap.className='photo-carousel-wrap';
+  viewport.parentNode.insertBefore(wrap, viewport);
+  wrap.appendChild(viewport);
+  var prev=document.createElement('button');
+  prev.className='carousel-btn prev'; prev.type='button';
+  prev.setAttribute('aria-label','foto anterior'); prev.innerHTML='&#8249;';
+  var next=document.createElement('button');
+  next.className='carousel-btn next'; next.type='button';
+  next.setAttribute('aria-label','proxima foto'); next.innerHTML='&#8250;';
+  wrap.appendChild(prev); wrap.appendChild(next);
+
+  var baseImgs=Array.prototype.slice.call(track.querySelectorAll('img'));
+  var baseSrcs=[];
+  baseImgs.forEach(function(im){ if(baseSrcs.indexOf(im.src)===-1) baseSrcs.push(im.src); });
+
+  function buildTrack(srcs){
+    track.innerHTML='';
+    var list=srcs.slice();
+    // garante largura suficiente para o loop
+    while(list.length<8 && srcs.length) list=list.concat(srcs);
+    list.concat(list).forEach(function(src,i){
+      var img=document.createElement('img');
+      img.src=src; img.loading='lazy';
+      img.alt='unhas biyou nails '+((i%list.length)+1);
+      img.className='shrink-0'; img.referrerPolicy='no-referrer';
+      track.appendChild(img);
+    });
+    pos=0;
+  }
+
+  // carrega fotos do Google Drive (Apps Script). se falhar, mantem as atuais.
+  function loadFromDrive(){
+    fetch(DRIVE_ENDPOINT,{cache:'no-store'})
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        var arr = Array.isArray(data) ? data : (data.images||data.photos||data.files||data.data||[]);
+        var srcs = arr.map(function(it){
+          if(typeof it==='string') return it;
+          if(!it) return null;
+          if(it.url) return it.url;
+          if(it.src) return it.src;
+          if(it.thumbnailLink) return it.thumbnailLink.replace(/=s\d+/,'=s800');
+          if(it.id) return 'https://drive.google.com/thumbnail?id='+it.id+'&sz=w800';
+          return null;
+        }).filter(Boolean);
+        if(srcs.length){ buildTrack(srcs); }
+      })
+      .catch(function(e){ console.warn('galeria: usando fotos locais', e); });
+  }
+
+  buildTrack(baseSrcs);
+  loadFromDrive();
+
+  // rolagem continua e lenta + navegacao manual
+  var pos=0, speed=22, paused=false, last=null; // px por segundo (lento)
+  function half(){ return track.scrollWidth/2 || 1; }
+  function apply(){ track.style.transform='translate3d('+pos+'px,0,0)'; }
+  function tick(t){
+    if(last==null) last=t;
+    var dt=(t-last)/1000; last=t;
+    if(!paused) pos-=speed*dt;
+    var h=half();
+    while(pos<=-h) pos+=h;
+    while(pos>0) pos-=h;
+    apply();
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  function step(dir){
+    var first=track.querySelector('img');
+    var w=first?(first.getBoundingClientRect().width+20):200;
+    pos+=dir*w;
+    track.style.transition='transform .45s ease';
+    apply();
+    setTimeout(function(){ track.style.transition=''; },460);
+  }
+  prev.addEventListener('click',function(){ step(1); });
+  next.addEventListener('click',function(){ step(-1); });
+  viewport.addEventListener('mouseenter',function(){ paused=true; });
+  viewport.addEventListener('mouseleave',function(){ paused=false; });
+})();
+</script>
+
+
+<style id="biyou-lava-boost">
+/* ===== lava lamp suave ===== */
+html, body { background: transparent !important; }
+#biyou-nails-v2, #biyou-nails-v2 > div, #biyou-nails-v2 section, #biyou-nails-v2 main { background-color: transparent !important; }
+#biyou-lava::after { background: rgba(255,252,248,.42) !important; }
+#biyou-lava { background: linear-gradient(160deg,#FBF6FF 0%,#FFF4FB 50%,#F3FAFF 100%) !important; }
+#biyou-lava .blob { filter: blur(90px) !important; opacity: .42 !important; mix-blend-mode: multiply; }
+#biyou-lava .b1 { animation: lava1 7s ease-in-out infinite alternate !important;
+  background: radial-gradient(circle at 35% 35%, #8FD3F0 0%, rgba(143,211,240,.55) 45%, rgba(143,211,240,0) 72%) !important; }
+#biyou-lava .b2 { animation: lava2 6s ease-in-out infinite alternate !important;
+  background: radial-gradient(circle at 40% 40%, #FBAFD8 0%, rgba(251,175,216,.55) 45%, rgba(251,175,216,0) 72%) !important; }
+#biyou-lava .b3 { animation: lava3 8s ease-in-out infinite alternate !important;
+  background: radial-gradient(circle at 45% 45%, #C9A6F7 0%, rgba(201,166,247,.55) 45%, rgba(201,166,247,0) 72%) !important; }
+#biyou-lava .b4 { opacity: .38 !important; animation: lava4 5.5s ease-in-out infinite alternate !important;
+  background: radial-gradient(circle at 40% 40%, #B392F0 0%, rgba(179,146,240,.55) 45%, rgba(179,146,240,0) 72%) !important; }
+</style>
+
 </body></html>
