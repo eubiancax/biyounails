@@ -6226,9 +6226,33 @@ html.biyou-dark #biyou-theme-toggle { background: rgba(255,255,255,.08) !importa
     pos=0;
   }
 
-  // fotos do album do Google Fotos
-  var GOOGLE_PHOTOS = ["https://lh3.googleusercontent.com/pw/AP1GczOdQS3HOdJB0VOn25fK4BVH1wqzx-qnvKcp7Ln9algpxCP5xZHI5MSwdqn518MEPeJXuJkWhItzL5NLsTlaHESOjxqfMBLGDx8CHJVJmvb-uuAKrVM=w900-no", "https://lh3.googleusercontent.com/pw/AP1GczNXEFVy3gcyTPxKpcQqrdyzMDEYNuixObTRwUYbgjPJ22kkUh-hS26CRiHyuyzfebHr6HXXEhEryJ1cYcOmnZ6gFPOTmZzKUNACgb1BLBSfECydDxU=w900-no", "https://lh3.googleusercontent.com/pw/AP1GczPE2Pi5f-rhVRywU9m0WoXnVxUrCjzf6E6JUBzpaEx-Z7BScIYJdlu0uge_KpJCwq6MwxO2G0wvRK6BNnx-6R6bJAiKlXxSbjA9OtrQvGPWYLV1uwA=w900-no", "https://lh3.googleusercontent.com/pw/AP1GczP45eG5duaXIBDKahvJoyWnT2djERanwviKZtSsi8QYo-mBUv-eoXViz8d4AeNAGzlOHLG5Mn5IbVyuLBF00CgHz-ej7Sjc2pDdYdqcZv5le7Z3uDQ=w900-no", "https://lh3.googleusercontent.com/pw/AP1GczPX3aMOXFL1bzxzs2p_6Ga7-IxzrXC1VJ9zOMbITCiTBDyvxTtDC9ROE_5nL2XIRvcjHaaUebgaTXTdU32EhtNcBw0NyDH9_FdDW4QHyP-0UfSD95A=w900-no"];
-  function loadFromPhotos(){ buildTrack(GOOGLE_PHOTOS); }
+  // fotos do album do Google Fotos (busca ao vivo via Apps Script)
+  // Depois de publicar o Apps Script (veja apps-script-biyou-fotos.gs),
+  // cole aqui a URL terminada em /exec que o Google te deu.
+  var ALBUM_FEED_URL = "https://script.google.com/macros/s/AKfycbzAehkSqLud4rojbuQWbsIz0RHFGmPgxLcoSw39z0h4GhqV_EvKBEFvl-CIplCkyncPkQ/exec";
+
+  // lista de reserva, usada apenas se o Apps Script não responder
+  var FALLBACK_PHOTOS = ["https://lh3.googleusercontent.com/pw/AP1GczOdQS3HOdJB0VOn25fK4BVH1wqzx-qnvKcp7Ln9algpxCP5xZHI5MSwdqn518MEPeJXuJkWhItzL5NLsTlaHESOjxqfMBLGDx8CHJVJmvb-uuAKrVM=w900-no", "https://lh3.googleusercontent.com/pw/AP1GczNXEFVy3gcyTPxKpcQqrdyzMDEYNuixObTRwUYbgjPJ22kkUh-hS26CRiHyuyzfebHr6HXXEhEryJ1cYcOmnZ6gFPOTmZzKUNACgb1BLBSfECydDxU=w900-no", "https://lh3.googleusercontent.com/pw/AP1GczPE2Pi5f-rhVRywU9m0WoXnVxUrCjzf6E6JUBzpaEx-Z7BScIYJdlu0uge_KpJCwq6MwxO2G0wvRK6BNnx-6R6bJAiKlXxSbjA9OtrQvGPWYLV1uwA=w900-no", "https://lh3.googleusercontent.com/pw/AP1GczP45eG5duaXIBDKahvJoyWnT2djERanwviKZtSsi8QYo-mBUv-eoXViz8d4AeNAGzlOHLG5Mn5IbVyuLBF00CgHz-ej7Sjc2pDdYdqcZv5le7Z3uDQ=w900-no", "https://lh3.googleusercontent.com/pw/AP1GczPX3aMOXFL1bzxzs2p_6Ga7-IxzrXC1VJ9zOMbITCiTBDyvxTtDC9ROE_5nL2XIRvcjHaaUebgaTXTdU32EhtNcBw0NyDH9_FdDW4QHyP-0UfSD95A=w900-no"];
+
+  function loadFromPhotos(){
+    var semUrlConfigurada = !ALBUM_FEED_URL || ALBUM_FEED_URL.indexOf('COLE_AQUI') === 0;
+    if (semUrlConfigurada) {
+      buildTrack(FALLBACK_PHOTOS);
+      return;
+    }
+    fetch(ALBUM_FEED_URL)
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if (data && data.ok && data.photos && data.photos.length) {
+          buildTrack(data.photos);
+        } else {
+          buildTrack(FALLBACK_PHOTOS);
+        }
+      })
+      .catch(function(){
+        buildTrack(FALLBACK_PHOTOS);
+      });
+  }
 
   buildTrack(baseSrcs);
   loadFromPhotos();
