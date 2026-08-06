@@ -6067,8 +6067,25 @@ html.biyou-dark #biyou-theme-toggle { background: rgba(255,255,255,.08) !importa
     try{ return JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); }catch(e){ return null; }
   }
   var lastKnownPlaying = false;
-  function saveState(){
+  var lastSaveAt = 0;
+  var savePending = false;
+  // salva no localStorage sem travar o audio: escrita throttled e fora do frame
+  function saveState(force){
     if(!ytReady) return;
+    var now = Date.now();
+    if(force !== true){
+      if(now - lastSaveAt < 2500) return;
+      if(savePending) return;
+      savePending = true;
+      var idle = window.requestIdleCallback || function(fn){ return setTimeout(fn, 0); };
+      idle(function(){ savePending = false; writeState(); });
+      return;
+    }
+    writeState();
+  }
+  function writeState(){
+    if(!ytReady) return;
+    lastSaveAt = Date.now();
     try{
       var d = ytPlayer.getVideoData ? ytPlayer.getVideoData() : null;
       var st = ytPlayer.getPlayerState ? ytPlayer.getPlayerState() : -1;
@@ -6084,18 +6101,18 @@ html.biyou-dark #biyou-theme-toggle { background: rgba(255,255,255,.08) !importa
   }
 
   window.biyouSavePlayerState = saveState;
-  window.addEventListener('pagehide', saveState);
-  window.addEventListener('beforeunload', saveState);
+  window.addEventListener('pagehide', function(){ saveState(true); });
+  window.addEventListener('beforeunload', function(){ saveState(true); });
   // mobile: iOS/Android muitas vezes nao disparam beforeunload/pagehide.
   // salvamos tambem ao esconder a aba, ao congelar e ao trocar de app.
   document.addEventListener('visibilitychange', function(){
-    if(document.visibilityState === 'hidden') saveState();
+    if(document.visibilityState === 'hidden') saveState(true);
   });
-  window.addEventListener('freeze', saveState);
-  window.addEventListener('blur', saveState);
+  window.addEventListener('freeze', function(){ saveState(true); });
+  window.addEventListener('blur', function(){ saveState(true); });
   // rotacao de tela: o audio nao deve parar; garantimos o estado salvo e o volume
   window.addEventListener('orientationchange', function(){
-    saveState();
+    saveState(true);
     setTimeout(function(){
       if(!ytReady) return;
       try{
@@ -6106,9 +6123,9 @@ html.biyou-dark #biyou-theme-toggle { background: rgba(255,255,255,.08) !importa
   // navegacao entre passos: salva antes de sair por qualquer link/form
   document.addEventListener('click', function(ev){
     var a = ev.target && ev.target.closest ? ev.target.closest('a[href]') : null;
-    if(a && !a.target && a.getAttribute('href') && a.getAttribute('href').charAt(0) !== '#') saveState();
+    if(a && !a.target && a.getAttribute('href') && a.getAttribute('href').charAt(0) !== '#') saveState(true);
   }, true);
-  document.addEventListener('submit', saveState, true);
+  document.addEventListener('submit', function(){ saveState(true); }, true);
   // volta do cache do navegador (botao voltar no mobile): retoma de onde parou
   window.addEventListener('pageshow', function(ev){
     if(!ev.persisted) return;
@@ -6189,7 +6206,7 @@ html.biyou-dark #biyou-theme-toggle { background: rgba(255,255,255,.08) !importa
 
   function onPlayerStateChange(e){
     updateTitle();
-    try{ saveState(); }catch(err){}
+    try{ saveState(true); }catch(err){}
     if(e.data === YT.PlayerState.ENDED){ continueAfterRestored(); }
     document.dispatchEvent(new CustomEvent('biyou:player-state', { detail: { state: e.data } }));
     if(e.data === YT.PlayerState.PLAYING){
@@ -6213,12 +6230,13 @@ html.biyou-dark #biyou-theme-toggle { background: rgba(255,255,255,.08) !importa
       var cur = ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0;
       var dur = ytPlayer.getDuration ? ytPlayer.getDuration() : 0;
       var pct = dur ? (cur/dur*100) : 0;
-      timeCurrent.textContent = fmt(cur);
-      timeTotal.textContent = fmt(dur);
-      progressFill.style.width = pct + '%';
-      progressDot.style.left = pct + '%';
+      var curTxt = fmt(cur), totTxt = fmt(dur), pctTxt = pct.toFixed(2) + '%';
+      if(timeCurrent.textContent !== curTxt) timeCurrent.textContent = curTxt;
+      if(timeTotal.textContent !== totTxt) timeTotal.textContent = totTxt;
+      if(progressFill.style.width !== pctTxt) progressFill.style.width = pctTxt;
+      if(progressDot.style.left !== pctTxt) progressDot.style.left = pctTxt;
       saveState();
-    }, 500);
+    }, 1000);
   }
   function stopTimer(){ if(ytTimer){ clearInterval(ytTimer); ytTimer = null; } }
 
