@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>biyou nails ୨୧⋆｡˚⋆o</title>
+<title>biyou nails — press on nails sob medida em São Paulo</title>
 <meta name="description" content="press on nails feitas à mão sob medida. dúvidas, avisos, set show, pedidos e passo a passo.">
 <meta property="og:title" content="biyou nails — press on nails sob medida">
 <meta property="og:description" content="unhas com personalidade, feitas por encomenda. tudo em um só lugar.">
@@ -5453,6 +5453,12 @@ header nav a[data-active="true"]{color:var(--foreground);}
 header nav a[data-active="true"]::after{width:100%;}
 header nav a[data-active="true"].w-full{background:color-mix(in oklab, var(--secondary) 70%, transparent);}
 </style>
+<link rel="preconnect" href="https://www.youtube.com" crossorigin>
+<link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin>
+<link rel="preconnect" href="https://i.ytimg.com" crossorigin>
+<link rel="preconnect" href="https://googleads.g.doubleclick.net" crossorigin>
+<link rel="dns-prefetch" href="https://r1---sn-25glene6.googlevideo.com">
+<script src="https://www.youtube.com/iframe_api" async></script>
 </head>
 <body>
 
@@ -5858,6 +5864,50 @@ html.biyou-dark #biyou-theme-toggle { background: rgba(255,255,255,.08) !importa
   var nextBtn = document.getElementById('biyou-yt-next');
   var shuffleBtn = document.getElementById('biyou-yt-shuffle');
   var shuffleOn = true;
+  // ordem de reprodução controlada pelo site (mais confiável que o
+  // setShuffle()/nextVideo() nativos do player do YouTube, que são
+  // conhecidos por não embaralhar de forma consistente)
+  var playlistIds = [];
+  var playOrder = [];
+  var orderPos = -1;
+  function shuffleArray(arr){
+    for(var i = arr.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+    }
+    return arr;
+  }
+  // monta a ordem de reprodução; se anchorToCurrent=true, mantém a faixa
+  // atual tocando e só reembaralha as próximas
+  function buildOrder(anchorToCurrent){
+    var ids = playlistIds.map(function(_, i){ return i; });
+    if(shuffleOn) shuffleArray(ids);
+    var newPos = 0;
+    if(anchorToCurrent && orderPos > -1 && playOrder.length){
+      var curOriginalIdx = playOrder[orderPos];
+      var foundPos = ids.indexOf(curOriginalIdx);
+      if(shuffleOn){
+        if(foundPos > 0){ ids.splice(foundPos,1); ids.unshift(curOriginalIdx); }
+        newPos = 0;
+      } else {
+        newPos = foundPos > -1 ? foundPos : 0;
+      }
+    }
+    playOrder = ids;
+    orderPos = newPos;
+  }
+  function playAt(pos, autoplay){
+    if(!playOrder.length) return;
+    orderPos = ((pos % playOrder.length) + playOrder.length) % playOrder.length;
+    var vid = playlistIds[playOrder[orderPos]];
+    if(!vid) return;
+    try{
+      if(autoplay){ ytPlayer.loadVideoById(vid); }
+      else { ytPlayer.cueVideoById(vid); }
+    }catch(e){}
+  }
+  function goNext(autoplay){ playAt(orderPos + 1, autoplay); }
+  function goPrev(autoplay){ playAt(orderPos - 1, autoplay); }
   var progressBg = document.getElementById('biyou-yt-progress-bg');
   var progressFill = document.getElementById('biyou-yt-progress-fill');
   var progressDot = document.getElementById('biyou-yt-progress-dot');
@@ -5903,7 +5953,7 @@ html.biyou-dark #biyou-theme-toggle { background: rgba(255,255,255,.08) !importa
         clearInterval(poll);
         if(titleEl) titleEl.textContent = 'não consegui carregar a playlist';
       }
-    }, 250);
+    }, 80);
   })();
 
 
@@ -5911,31 +5961,37 @@ html.biyou-dark #biyou-theme-toggle { background: rgba(255,255,255,.08) !importa
     // vídeo bloqueado para incorporação (100/101/150) -> pula para o próximo
     try{
       titleEl.textContent = 'trocando de faixa...';
-      setTimeout(function(){ try{ ytPlayer.nextVideo(); }catch(err){} }, 300);
+      setTimeout(function(){ try{ goNext(true); }catch(err){} }, 300);
     }catch(err){}
   }
 
   function onPlayerReady(){
     ytReady = true;
     window.biyouPlayer = ytPlayer;
-    updateTitle();
     var vol = document.getElementById('biyou-yt-volume');
     var startVol = vol ? parseInt(vol.value, 10) : 30;
     try{ ytPlayer.unMute(); ytPlayer.setVolume(startVol); }catch(e){}
-    // ordem aleatoria ativada, mas sem tocar: o som so comeca no play
-    applyShuffle(false);
-    try{ ytPlayer.setShuffle(true); }catch(e){}
+
+    // pega a lista de vídeos da playlist e monta nossa própria ordem
+    // (embaralhada, se shuffleOn), já que o embaralhamento nativo do
+    // player do YouTube é pouco confiável entre navegadores
+    try{ playlistIds = ytPlayer.getPlaylist ? (ytPlayer.getPlaylist() || []) : []; }catch(e){ playlistIds = []; }
+    buildOrder(false);
+    if(shuffleBtn){
+      shuffleBtn.classList.toggle('is-active', shuffleOn);
+      shuffleBtn.setAttribute('aria-pressed', shuffleOn ? 'true' : 'false');
+      shuffleBtn.setAttribute('title', shuffleOn ? 'ordem aleatória: ativada' : 'ordem aleatória: desativada');
+    }
+
     // sorteia a faixa inicial (sem tocar) para variar a cada visita
     var savedNow = readSaved();
-    try{
-      var pl = ytPlayer.getPlaylist ? ytPlayer.getPlaylist() : null;
-      if(!(savedNow && savedNow.v) && pl && pl.length > 1){
-        var idx = Math.floor(Math.random() * pl.length);
-        ytPlayer.cuePlaylist({ listType: 'playlist', list: YT_PLAYLIST_ID, index: idx });
-        try{ ytPlayer.setShuffle(true); ytPlayer.setVolume(startVol); }catch(e){}
-        setTimeout(updateTitle, 800);
-      }
-    }catch(e){}
+    if(!(savedNow && savedNow.v) && playlistIds.length > 1){
+      playAt(0, false);
+      setTimeout(updateTitle, 800);
+    } else {
+      updateTitle();
+    }
+
     if(toggleBtn) toggleBtn.classList.add('needs-start');
     if(titleEl && titleEl.textContent === 'carregando playlist...'){
       titleEl.textContent = 'biyou playlist \u2014 toque no play';
@@ -5949,22 +6005,81 @@ html.biyou-dark #biyou-theme-toggle { background: rgba(255,255,255,.08) !importa
   function readSaved(){
     try{ return JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); }catch(e){ return null; }
   }
-  function saveState(){
+  var lastKnownPlaying = false;
+  var userPaused = false;
+  var lastSaveAt = 0;
+  var savePending = false;
+  // no mobile, escrever no localStorage a cada frame causa travadas.
+  // por isso a gravacao normal e throttled e roda em tempo ocioso;
+  // saveState(true) grava na hora (ao sair da pagina/esconder a aba).
+  function saveState(force){
     if(!ytReady) return;
+    if(force !== true){
+      if(Date.now() - lastSaveAt < 900) return;
+      if(savePending) return;
+      savePending = true;
+      var idle = window.requestIdleCallback || function(fn){ return setTimeout(fn, 0); };
+      idle(function(){ savePending = false; writeState(); });
+      return;
+    }
+    writeState();
+  }
+  function writeState(){
+    if(!ytReady) return;
+    lastSaveAt = Date.now();
     try{
       var d = ytPlayer.getVideoData ? ytPlayer.getVideoData() : null;
       var st = ytPlayer.getPlayerState ? ytPlayer.getPlayerState() : -1;
+      if(st === 1 || st === 2) lastKnownPlaying = (st === 1);
       localStorage.setItem(SAVE_KEY, JSON.stringify({
         v: d && d.video_id ? d.video_id : null,
         t: ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0,
-        playing: st === 1,
-        vol: ytPlayer.getVolume ? ytPlayer.getVolume() : 30
+        // buffering (3) durante a troca de aba nao significa pausa do usuario
+        playing: st === 1 || (st === 3 && lastKnownPlaying),
+        vol: ytPlayer.getVolume ? ytPlayer.getVolume() : 30,
+        at: Date.now()
       }));
     }catch(e){}
   }
   window.biyouSavePlayerState = saveState;
-  window.addEventListener('pagehide', saveState);
-  window.addEventListener('beforeunload', saveState);
+  window.addEventListener('pagehide', function(){ saveState(true); });
+  window.addEventListener('beforeunload', function(){ saveState(true); });
+  // mobile: iOS/Android muitas vezes nao disparam beforeunload/pagehide,
+  // entao salvamos ao esconder a aba, ao congelar e ao trocar de app.
+  // ao voltar para a aba, retomamos do ponto onde o audio parou (sem seek,
+  // para nao gerar recarregamento nem pulo de trecho).
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === 'hidden'){ saveState(true); return; }
+    if(!ytReady || userPaused || !lastKnownPlaying) return;
+    try{ if(ytPlayer.getPlayerState() !== 1) ytPlayer.playVideo(); }catch(e){}
+    setTimeout(function(){
+      if(userPaused) return;
+      try{ if(ytPlayer.getPlayerState() !== 1) ytPlayer.playVideo(); }catch(e){}
+    }, 500);
+  });
+  window.addEventListener('freeze', function(){ saveState(true); });
+  window.addEventListener('blur', function(){ saveState(true); });
+  // rotacao de tela nao deve interromper o audio
+  window.addEventListener('orientationchange', function(){
+    saveState(true);
+    setTimeout(function(){
+      if(!ytReady || userPaused) return;
+      try{ if(lastKnownPlaying && ytPlayer.getPlayerState() !== 1) ytPlayer.playVideo(); }catch(e){}
+    }, 400);
+  });
+  document.addEventListener('click', function(ev){
+    var a = ev.target && ev.target.closest ? ev.target.closest('a[href]') : null;
+    if(a && !a.target && a.getAttribute('href') && a.getAttribute('href').charAt(0) !== '#') saveState(true);
+  }, true);
+  document.addEventListener('submit', function(){ saveState(true); }, true);
+  // volta do cache do navegador: retoma de onde parou
+  window.addEventListener('pageshow', function(ev){
+    if(!ev.persisted || !ytReady) return;
+    try{
+      var sv = readSaved();
+      if(sv && sv.playing && ytPlayer.getPlayerState() !== 1){ ytPlayer.unMute(); ytPlayer.playVideo(); }
+    }catch(e){}
+  });
 
   function restoreSaved(startVol, savedNow){
     var saved = savedNow || readSaved();
@@ -5975,19 +6090,41 @@ html.biyou-dark #biyou-theme-toggle { background: rgba(255,255,255,.08) !importa
         var volEl = document.getElementById('biyou-yt-volume');
         if(volEl) volEl.value = saved.vol;
       }
-      var list = ytPlayer.getPlaylist ? ytPlayer.getPlaylist() : null;
-      var idx = list ? list.indexOf(saved.v) : -1;
-      var start = Math.max(0, (saved.t || 0) - 0.4);
-      if(idx > -1){
-        if(saved.playing){ ytPlayer.loadPlaylist({ listType:'playlist', list: YT_PLAYLIST_ID, index: idx, startSeconds: start }); }
-        else { ytPlayer.cuePlaylist({ listType:'playlist', list: YT_PLAYLIST_ID, index: idx, startSeconds: start }); }
-      } else {
-        if(saved.playing){ ytPlayer.loadVideoById({ videoId: saved.v, startSeconds: start }); }
-        else { ytPlayer.cueVideoById({ videoId: saved.v, startSeconds: start }); }
+      var origIdx = playlistIds.indexOf(saved.v);
+      var start = Math.max(0, (saved.t || 0) - 0.25);
+      // compensa o tempo que a pagina levou para carregar, para a musica
+      // continuar exatamente de onde estava (sem repetir nem pular trecho)
+      if(saved.playing && saved.at){
+        var gap = (Date.now() - saved.at) / 1000;
+        if(gap > 0 && gap < 20) start = Math.max(0, (saved.t || 0) + gap - 0.25);
       }
+      if(origIdx > -1){
+        var pos = playOrder.indexOf(origIdx);
+        if(pos > -1) orderPos = pos;
+      }
+      if(saved.playing){ ytPlayer.loadVideoById({ videoId: saved.v, startSeconds: start }); }
+      else { ytPlayer.cueVideoById({ videoId: saved.v, startSeconds: start }); }
       if(saved.playing){
+        lastKnownPlaying = true;
         try{ ytPlayer.unMute(); }catch(e){}
-        setTimeout(function(){ try{ ytPlayer.playVideo(); }catch(e){} }, 400);
+        try{ ytPlayer.playVideo(); }catch(e){}
+        setTimeout(function(){ try{ if(ytPlayer.getPlayerState() !== 1) ytPlayer.playVideo(); }catch(e){} }, 250);
+        // mobile: sem gesto do usuario o audio pode ser bloqueado.
+        // a faixa fica pronta no ponto certo e retoma no primeiro toque.
+        setTimeout(function(){
+          try{
+            if(ytPlayer.getPlayerState() === 1) return;
+            if(toggleBtn) toggleBtn.classList.add('needs-start');
+            if(titleEl) titleEl.textContent = 'toque na tela para continuar';
+            var evts = ['pointerdown','touchend','click','keydown','scroll'];
+            var resume = function(){
+              evts.forEach(function(n){ document.removeEventListener(n, resume, true); });
+              try{ ytPlayer.unMute(); ytPlayer.setVolume(saved.vol || startVol || 30); ytPlayer.playVideo(); }catch(e){}
+              setTimeout(updateTitle, 600);
+            };
+            evts.forEach(function(n){ document.addEventListener(n, resume, true); });
+          }catch(e){}
+        }, 900);
       }
       setTimeout(updateTitle, 900);
     }catch(e){}
@@ -6010,7 +6147,7 @@ html.biyou-dark #biyou-theme-toggle { background: rgba(255,255,255,.08) !importa
       try{
         if(ytPlayer.getPlayerState() !== YT.PlayerState.PLAYING){
           if(titleEl) titleEl.textContent = 'trocando de faixa...';
-          ytPlayer.nextVideo();
+          goNext(true);
           setTimeout(function(){ try{ ytPlayer.playVideo(); }catch(e){} }, 400);
         }
       }catch(e){}
@@ -6019,11 +6156,13 @@ html.biyou-dark #biyou-theme-toggle { background: rgba(255,255,255,.08) !importa
 
   function onPlayerStateChange(e){
     updateTitle();
-    try{ saveState(); }catch(err){}
+    try{ saveState(true); }catch(err){}
     document.dispatchEvent(new CustomEvent('biyou:player-state', { detail: { state: e.data } }));
     if(e.data === YT.PlayerState.BUFFERING){ watchStuck(); }
     else { clearStuck(); }
+    if(e.data === YT.PlayerState.ENDED){ goNext(true); }
     if(e.data === YT.PlayerState.PLAYING){
+      userPaused = false; lastKnownPlaying = true;
       iconPlay.style.display = 'none'; iconPause.style.display = '';
       toggleBtn.setAttribute('aria-label','pausar');
       orbEl.classList.add('spinning');
@@ -6042,15 +6181,18 @@ html.biyou-dark #biyou-theme-toggle { background: rgba(255,255,255,.08) !importa
     stopTimer();
     ytTimer = setInterval(function(){
       if(!ytReady) return;
+      // aba escondida: nao gastar CPU com UI (evita travadas no mobile)
+      if(document.hidden) return;
       var cur = ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0;
       var dur = ytPlayer.getDuration ? ytPlayer.getDuration() : 0;
       var pct = dur ? (cur/dur*100) : 0;
-      timeCurrent.textContent = fmt(cur);
-      timeTotal.textContent = fmt(dur);
-      progressFill.style.width = pct + '%';
-      progressDot.style.left = pct + '%';
+      var curTxt = fmt(cur), totTxt = fmt(dur), pctTxt = pct.toFixed(2) + '%';
+      if(timeCurrent.textContent !== curTxt) timeCurrent.textContent = curTxt;
+      if(timeTotal.textContent !== totTxt) timeTotal.textContent = totTxt;
+      if(progressFill.style.width !== pctTxt) progressFill.style.width = pctTxt;
+      if(progressDot.style.left !== pctTxt) progressDot.style.left = pctTxt;
       saveState();
-    }, 500);
+    }, 1000);
   }
   function stopTimer(){ if(ytTimer){ clearInterval(ytTimer); ytTimer = null; } }
 
@@ -6061,8 +6203,9 @@ html.biyou-dark #biyou-theme-toggle { background: rgba(255,255,255,.08) !importa
       return;
     }
     var state = ytPlayer.getPlayerState();
-    if(state === YT.PlayerState.PLAYING){ ytPlayer.pauseVideo(); }
+    if(state === YT.PlayerState.PLAYING){ userPaused = true; lastKnownPlaying = false; ytPlayer.pauseVideo(); }
     else {
+      userPaused = false;
       try{
         ytPlayer.unMute();
         var vol = document.getElementById('biyou-yt-volume');
@@ -6073,33 +6216,35 @@ html.biyou-dark #biyou-theme-toggle { background: rgba(255,255,255,.08) !importa
     }
 
   });
-  function applyShuffle(startRandom){
-    if(!ytReady) return;
-    try{
-      ytPlayer.setShuffle(shuffleOn);
-      if(shuffleOn && startRandom){
-        var list = ytPlayer.getPlaylist ? ytPlayer.getPlaylist() : null;
-        if(list && list.length > 1){
-          ytPlayer.playVideoAt(Math.floor(Math.random() * list.length));
-        }
-      }
-    }catch(e){}
+  // jump=true: abandona a faixa atual e sorteia outra na hora (usado ao
+  // ligar o embaralhar). jump=false: mantém a faixa atual tocando e só
+  // reorganiza a ordem das próximas (usado ao desligar o embaralhar).
+  function applyShuffle(jump){
     if(shuffleBtn){
       shuffleBtn.classList.toggle('is-active', shuffleOn);
       shuffleBtn.setAttribute('aria-pressed', shuffleOn ? 'true' : 'false');
       shuffleBtn.setAttribute('title', shuffleOn ? 'ordem aleatória: ativada' : 'ordem aleatória: desativada');
+    }
+    if(!ytReady || !playlistIds.length) return;
+    if(jump && shuffleOn){
+      buildOrder(false);
+      var wasPlaying = false;
+      try{ wasPlaying = ytPlayer.getPlayerState() === YT.PlayerState.PLAYING; }catch(e){}
+      playAt(0, wasPlaying);
+    } else {
+      buildOrder(true);
     }
   }
 
   if(shuffleBtn){
     shuffleBtn.addEventListener('click', function(){
       shuffleOn = !shuffleOn;
-      applyShuffle(true);
+      applyShuffle(shuffleOn);
     });
   }
 
-  prevBtn.addEventListener('click', function(){ if(ytReady) ytPlayer.previousVideo(); });
-  nextBtn.addEventListener('click', function(){ if(ytReady) ytPlayer.nextVideo(); });
+  prevBtn.addEventListener('click', function(){ if(ytReady) goPrev(true); });
+  nextBtn.addEventListener('click', function(){ if(ytReady) goNext(true); });
   progressBg.addEventListener('click', function(ev){
     if(!ytReady) return;
     var rect = progressBg.getBoundingClientRect();
