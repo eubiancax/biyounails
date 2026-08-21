@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>biyou nails</title>
+<title>biyou nails — press on nails sob medida em São Paulo</title>
 <meta name="description" content="press on nails feitas à mão sob medida. dúvidas, avisos, set show, pedidos e passo a passo.">
 <meta property="og:title" content="biyou nails — press on nails sob medida">
 <meta property="og:description" content="unhas com personalidade, feitas por encomenda. tudo em um só lugar.">
@@ -6367,13 +6367,7 @@ html.biyou-dark #biyou-theme-toggle { background: rgba(255,255,255,.08) !importa
   wrap.className='photo-carousel-wrap';
   viewport.parentNode.insertBefore(wrap, viewport);
   wrap.appendChild(viewport);
-  var prev=document.createElement('button');
-  prev.className='carousel-btn prev'; prev.type='button';
-  prev.setAttribute('aria-label','foto anterior'); prev.innerHTML='&#8249;';
-  var next=document.createElement('button');
-  next.className='carousel-btn next'; next.type='button';
-  next.setAttribute('aria-label','proxima foto'); next.innerHTML='&#8250;';
-  wrap.appendChild(prev); wrap.appendChild(next);
+  // indicadores/botoes laterais removidos: navegacao por arrastar
 
   var baseImgs=Array.prototype.slice.call(track.querySelectorAll('img'));
   var baseSrcs=[];
@@ -6441,18 +6435,61 @@ html.biyou-dark #biyou-theme-toggle { background: rgba(255,255,255,.08) !importa
   }
   requestAnimationFrame(tick);
 
-  function step(dir){
-    var first=track.querySelector('img');
-    var w=first?(first.getBoundingClientRect().width+20):200;
-    pos+=dir*w;
-    track.style.transition='transform .45s ease';
-    apply();
-    setTimeout(function(){ track.style.transition=''; },460);
+  viewport.addEventListener('mouseenter',function(){ if(!dragging) paused=true; });
+  viewport.addEventListener('mouseleave',function(){ if(!dragging) paused=false; });
+
+  // ===== arrastar para o lado (mobile e desktop) =====
+  var dragging=false, dragStartX=0, dragStartPos=0, dragMoved=false, dragPointer=null;
+  viewport.style.cursor='grab';
+  viewport.style.touchAction='pan-y';       // permite rolar a pagina na vertical, arrastar na horizontal
+  viewport.style.userSelect='none';
+  viewport.style.webkitUserSelect='none';
+
+  function pointX(e){ return e.touches && e.touches.length ? e.touches[0].clientX : e.clientX; }
+
+  function dragStart(e){
+    dragging=true; dragMoved=false; paused=true;
+    dragStartX=pointX(e); dragStartPos=pos;
+    track.style.transition='';
+    viewport.style.cursor='grabbing';
+    if(e.pointerId!=null){ dragPointer=e.pointerId; try{ viewport.setPointerCapture(e.pointerId); }catch(err){} }
   }
-  prev.addEventListener('click',function(){ step(1); });
-  next.addEventListener('click',function(){ step(-1); });
-  viewport.addEventListener('mouseenter',function(){ paused=true; });
-  viewport.addEventListener('mouseleave',function(){ paused=false; });
+  function dragMove(e){
+    if(!dragging) return;
+    var dx=pointX(e)-dragStartX;
+    if(Math.abs(dx)>3) dragMoved=true;
+    pos=dragStartPos+dx;
+    var h=half();
+    while(pos<=-h) pos+=h;
+    while(pos>0) pos-=h;
+    apply();
+    if(e.cancelable && dragMoved) e.preventDefault();
+  }
+  function dragEnd(e){
+    if(!dragging) return;
+    dragging=false; paused=false;
+    viewport.style.cursor='grab';
+    if(dragPointer!=null){ try{ viewport.releasePointerCapture(dragPointer); }catch(err){} dragPointer=null; }
+  }
+
+  if(window.PointerEvent){
+    viewport.addEventListener('pointerdown', dragStart);
+    viewport.addEventListener('pointermove', dragMove);
+    viewport.addEventListener('pointerup', dragEnd);
+    viewport.addEventListener('pointercancel', dragEnd);
+    viewport.addEventListener('pointerleave', dragEnd);
+  } else {
+    viewport.addEventListener('mousedown', dragStart);
+    window.addEventListener('mousemove', dragMove);
+    window.addEventListener('mouseup', dragEnd);
+    viewport.addEventListener('touchstart', dragStart, {passive:true});
+    viewport.addEventListener('touchmove', dragMove, {passive:false});
+    viewport.addEventListener('touchend', dragEnd);
+  }
+  // evita "arrastar imagem" nativo do navegador ao clicar-arrastar
+  track.addEventListener('dragstart', function(e){ e.preventDefault(); });
+  // impede que um arraste vire clique em links/imagens
+  viewport.addEventListener('click', function(e){ if(dragMoved){ e.preventDefault(); e.stopPropagation(); } }, true);
 })();
 
   
