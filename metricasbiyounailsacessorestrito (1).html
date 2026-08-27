@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>biyou nails</title>
+<!-- página privada: não indexar, não seguir links, não listar em buscadores -->
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<style>
+  :root{
+    --radius: 1.25rem;
+    --background: oklch(99% .006 95);
+    --foreground: oklch(32% .03 285);
+    --card: oklch(100% 0 0);
+    --primary: oklch(74% .11 310);
+    --secondary: oklch(96% .02 320);
+    --muted-foreground: oklch(56% .03 290);
+    --accent: oklch(80% .13 350);
+    --border: oklch(93% .015 310);
+    --dot-blue: oklch(78% .1 230);
+    --dot-lilac: oklch(72% .12 300);
+    --dot-pink: oklch(76% .16 350);
+    --dot-green: oklch(84% .08 140);
+    --dot-peach: oklch(83% .11 60);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--background);color:var(--foreground);
+    font-family:"Manrope",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+  .wrap{max-width:1100px;margin:0 auto;padding:48px 20px 80px}
+  .eyebrow{text-align:center;font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;
+    color:color-mix(in oklab, var(--primary) 80%, var(--foreground));margin:0 0 8px}
+  h1{font-family:Georgia,"Fogthree",serif;font-size:2.5rem;text-align:center;margin:0 0 12px;
+    letter-spacing:.02em}
+  .subtitle{text-align:center;color:var(--muted-foreground);font-size:.95rem;margin:0 0 44px}
+  .grid{display:grid;grid-template-columns:1fr;gap:20px}
+  @media (min-width:760px){.grid{grid-template-columns:1fr 1fr}}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+    padding:24px 24px 20px;box-shadow:0 8px 30px -18px rgba(60,30,50,.25)}
+  .card h2{font-family:Georgia,"Fogthree",serif;font-size:1.15rem;margin:0 0 4px;
+    display:flex;align-items:center;gap:8px}
+  .card h2 .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .card .hint{font-size:.75rem;color:var(--muted-foreground);margin:0 0 18px}
+  .row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .row .label{flex:0 0 40%;font-size:.85rem;color:var(--foreground);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .row .bar-wrap{flex:1;background:var(--secondary);border-radius:999px;height:10px;overflow:hidden}
+  .row .bar{height:100%;border-radius:999px;transition:width .6s ease}
+  .row .value{flex:0 0 auto;font-size:.8rem;font-weight:700;min-width:36px;text-align:right}
+  .empty{color:var(--muted-foreground);font-size:.85rem;padding:8px 0}
+  .footer-note{text-align:center;font-size:.75rem;color:var(--muted-foreground);margin-top:40px}
+  .loading{text-align:center;color:var(--muted-foreground);padding:60px 0}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="eyebrow">biyou nails</p>
+    <h1>painel de acessos</h1>
+    <p class="subtitle">últimos 28 dias — página privada</p>
+
+    <div id="loading" class="loading">carregando dados…</div>
+    <div id="grid" class="grid" style="display:none">
+      <div class="card">
+        <h2><span class="dot" style="background:var(--dot-blue)"></span>usuários por região</h2>
+        <p class="hint">de onde as visitas estão vindo</p>
+        <div id="region-rows"></div>
+      </div>
+      <div class="card">
+        <h2><span class="dot" style="background:var(--dot-lilac)"></span>tempo médio por seção</h2>
+        <p class="hint">onde as pessoas ficam mais tempo (segundos)</p>
+        <div id="section-rows"></div>
+      </div>
+      <div class="card">
+        <h2><span class="dot" style="background:var(--dot-pink)"></span>cliques no instagram</h2>
+        <p class="hint">quantas pessoas clicaram, por botão</p>
+        <div id="instagram-rows"></div>
+      </div>
+      <div class="card">
+        <h2><span class="dot" style="background:var(--dot-green)"></span>de onde vêm as visitas</h2>
+        <p class="hint">origem do tráfego</p>
+        <div id="source-rows"></div>
+      </div>
+      <div class="card">
+        <h2><span class="dot" style="background:var(--dot-peach)"></span>dispositivo</h2>
+        <p class="hint">celular ou computador</p>
+        <div id="device-rows"></div>
+      </div>
+    </div>
+    <p class="footer-note">página privada — visível apenas com login autorizado</p>
+  </div>
+
+<script>
+(function(){
+  var palette = ['var(--dot-blue)','var(--dot-lilac)','var(--dot-pink)','var(--dot-green)','var(--dot-peach)','var(--primary)'];
+
+  function renderRows(containerId, items, labelKey, valueKey) {
+    var el = document.getElementById(containerId);
+    if (!items || !items.length) {
+      el.innerHTML = '<p class="empty">sem dados ainda</p>';
+      return;
+    }
+    var max = Math.max.apply(null, items.map(function(i){ return i[valueKey]; })) || 1;
+    el.innerHTML = items.map(function(item, idx){
+      var pct = Math.max(4, Math.round((item[valueKey] / max) * 100));
+      var color = palette[idx % palette.length];
+      return '' +
+        '<div class="row">' +
+          '<span class="label" title="' + item[labelKey] + '">' + item[labelKey] + '</span>' +
+          '<span class="bar-wrap"><span class="bar" style="width:' + pct + '%;background:' + color + '"></span></span>' +
+          '<span class="value">' + item[valueKey] + '</span>' +
+        '</div>';
+    }).join('');
+  }
+
+  fetch('/api/analytics')
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('grid').style.display = 'grid';
+      if (data.error) {
+        document.getElementById('grid').innerHTML =
+          '<div class="card" style="grid-column:1/-1"><p class="empty">Erro ao carregar: ' + data.error + '</p></div>';
+        return;
+      }
+      renderRows('region-rows', data.region, 'region', 'users');
+      renderRows('section-rows', data.section, 'section_id', 'avg_seconds');
+      renderRows('instagram-rows', data.instagram, 'location', 'clicks');
+      renderRows('source-rows', data.source, 'channel', 'users');
+      renderRows('device-rows', data.device, 'device', 'users');
+    })
+    .catch(function(err){
+      document.getElementById('loading').textContent = 'Não foi possível carregar os dados agora.';
+    });
+})();
+</script>
+</body>
+</html>
