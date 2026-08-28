@@ -6484,7 +6484,7 @@ html.biyou-dark #biyou-theme-toggle { background: rgba(255,255,255,.08) !importa
   function dragMove(e){
     if(!dragging) return;
     var dx=pointX(e)-dragStartX;
-    if(Math.abs(dx)>3) dragMoved=true;
+    if(Math.abs(dx)>10) dragMoved=true;
     pos=dragStartPos+dx;
     var h=half();
     while(pos<=-h) pos+=h;
@@ -6865,29 +6865,12 @@ document.getElementById('biyou-suggest-btn').addEventListener('click',function()
   if(!val)return;
   if(typeof gtag==='function'){gtag('event','music_suggestion',{song_name:val});}
   inp.value='';
-  msg.textContent='obrigada pela sugestão! 💙';
+  msg.innerHTML='obrigada pela sugestão! <span style="display:inline-block;animation:biyou-spin-heart 1s ease-in-out">💙</span>';
   msg.style.display='block';
   setTimeout(function(){msg.style.display='none';},3000);
 });
 document.getElementById('biyou-suggest-input').addEventListener('keydown',function(e){
   if(e.key==='Enter'){document.getElementById('biyou-suggest-btn').click();}
-});
-</script>
-<!-- lightbox -->
-<div id="biyou-lightbox" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.85);cursor:zoom-out;align-items:center;justify-content:center" onclick="this.style.display='none'">
-  <img id="biyou-lightbox-img" src="" style="max-width:92vw;max-height:92vh;border-radius:12px;object-fit:contain" />
-</div>
-<script>
-document.querySelectorAll('.photo-marquee img').forEach(function(img){
-  img.style.cursor='zoom-in';
-  img.addEventListener('click',function(){
-    var lb=document.getElementById('biyou-lightbox');
-    document.getElementById('biyou-lightbox-img').src=this.src;
-    lb.style.display='flex';
-  });
-});
-document.addEventListener('keydown',function(e){
-  if(e.key==='Escape') document.getElementById('biyou-lightbox').style.display='none';
 });
 </script>
 </body>
