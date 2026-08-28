@@ -18,6 +18,28 @@ function simplify(resp) {
   }));
 }
 
+// traduz termos comuns do GA4 para português
+function traduzir(str) {
+  var map = {
+    'mobile': 'celular',
+    'desktop': 'computador',
+    'tablet': 'tablet',
+    'Direct': 'direto',
+    'Organic Search': 'busca orgânica',
+    'Organic Social': 'rede social',
+    'Referral': 'referência',
+    'Paid Search': 'busca paga',
+    'Email': 'e-mail',
+    'Unassigned': 'não identificado',
+    '(not set)': '(não identificado)',
+    '(not provided)': '(não identificado)',
+  };
+  if (!str) return '(não identificado)';
+  // "State of Sao Paulo" → "São Paulo"
+  if (str.startsWith('State of ')) return str.replace('State of ', '').replace('Sao Paulo', 'São Paulo');
+  return map[str] || str;
+}
+
 module.exports = async (req, res) => {
   try {
     const propertyId = process.env.GA_PROPERTY_ID;
@@ -30,7 +52,7 @@ module.exports = async (req, res) => {
     const property = `properties/${propertyId}`;
     const dateRanges = [{ startDate: '28daysAgo', endDate: 'today' }];
 
-    const [regionResp, sectionResp, instaResp, sourceResp, deviceResp] = await Promise.all([
+    const [regionResp, sectionResp, instaResp, sourceResp, deviceResp, suggestResp] = await Promise.all([
       client.runReport({
         property,
         dateRanges,
@@ -72,6 +94,17 @@ module.exports = async (req, res) => {
         metrics: [{ name: 'activeUsers' }],
         orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
       }),
+      client.runReport({
+        property,
+        dateRanges,
+        dimensions: [{ name: 'customEvent:song_name' }],
+        metrics: [{ name: 'eventCount' }],
+        dimensionFilter: {
+          filter: { fieldName: 'eventName', stringFilter: { value: 'music_suggestion' } },
+        },
+        orderBys: [{ metric: { metricName: 'eventCount' }, desc: true }],
+        limit: 20,
+      }),
     ]);
 
     // agrega o tempo por seção: soma(segundos * contagem) / contagem = média
@@ -94,11 +127,12 @@ module.exports = async (req, res) => {
 
     res.setHeader('Cache-Control', 's-maxage=1800');
     res.status(200).json({
-      region: simplify(regionResp).map((r) => ({ region: r.dims[0] || '(não identificado)', users: Number(r.metrics[0]) })),
+      region: simplify(regionResp).map((r) => ({ region: traduzir(r.dims[0]) || '(não identificado)', users: Number(r.metrics[0]) })),
       section: sectionData,
       instagram: simplify(instaResp).map((r) => ({ location: r.dims[0] || '(sem rótulo)', clicks: Number(r.metrics[0]) })),
-      source: simplify(sourceResp).map((r) => ({ channel: r.dims[0] || '(direto)', users: Number(r.metrics[0]) })),
-      device: simplify(deviceResp).map((r) => ({ device: r.dims[0], users: Number(r.metrics[0]) })),
+      source: simplify(sourceResp).map((r) => ({ channel: traduzir(r.dims[0]) || '(direto)', users: Number(r.metrics[0]) })),
+      device: simplify(deviceResp).map((r) => ({ device: traduzir(r.dims[0]), users: Number(r.metrics[0]) })),
+      suggestions: simplify(suggestResp).map((r) => ({ song: r.dims[0] || '(sem nome)', count: Number(r.metrics[0]) })),
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
