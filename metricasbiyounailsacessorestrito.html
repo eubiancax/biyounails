@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>biyou nails</title>
-<!-- página privada: não indexar, não seguir links, não listar em buscadores -->
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
 <style>
   :root{
@@ -22,6 +21,7 @@
     --dot-pink: oklch(76% .16 350);
     --dot-green: oklch(84% .08 140);
     --dot-peach: oklch(83% .11 60);
+    --dot-gold: oklch(82% .1 85);
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0;background:var(--background);color:var(--foreground);
@@ -49,12 +49,33 @@
   .empty{color:var(--muted-foreground);font-size:.85rem;padding:8px 0}
   .footer-note{text-align:center;font-size:.75rem;color:var(--muted-foreground);margin-top:40px}
   .loading{text-align:center;color:var(--muted-foreground);padding:60px 0}
+  /* tela de senha */
+  .pw-overlay{position:fixed;inset:0;background:var(--background);z-index:9999;display:flex;align-items:center;justify-content:center}
+  .pw-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:36px 32px;box-shadow:0 8px 30px -18px rgba(60,30,50,.25);text-align:center;max-width:340px;width:90%}
+  .pw-box h2{font-family:Georgia,"Fogthree",serif;font-size:1.4rem;margin:0 0 6px}
+  .pw-box p{font-size:.85rem;color:var(--muted-foreground);margin:0 0 20px}
+  .pw-box input{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:calc(var(--radius) - 4px);background:var(--secondary);color:var(--foreground);font-size:.9rem;outline:none;text-align:center;margin-bottom:12px}
+  .pw-box button{padding:10px 28px;border:none;border-radius:calc(var(--radius) - 4px);background:var(--primary);color:white;font-size:.9rem;cursor:pointer}
+  .pw-box .pw-err{color:var(--dot-pink);font-size:.8rem;margin:8px 0 0;display:none}
 </style>
 </head>
 <body>
-  <div class="wrap">
+
+  <!-- tela de senha -->
+  <div id="pw-overlay" class="pw-overlay">
+    <div class="pw-box">
+      <p class="eyebrow" style="margin-bottom:12px">biyou nails</p>
+      <h2>área restrita</h2>
+      <p>digite a senha para continuar</p>
+      <input id="pw-input" type="password" placeholder="senha" autofocus />
+      <button id="pw-btn" type="button">entrar</button>
+      <p id="pw-err" class="pw-err">senha incorreta</p>
+    </div>
+  </div>
+
+  <div id="main-content" class="wrap" style="display:none">
     <p class="eyebrow">biyou nails</p>
-    <h1>painel de acessos</h1>
+    <h1>dados do site</h1>
     <p class="subtitle">últimos 28 dias — página privada</p>
 
     <div id="loading" class="loading">carregando dados…</div>
@@ -84,12 +105,42 @@
         <p class="hint">celular ou computador</p>
         <div id="device-rows"></div>
       </div>
+      <div class="card">
+        <h2><span class="dot" style="background:var(--dot-gold)"></span>sugestões de música</h2>
+        <p class="hint">músicas indicadas pela playlist</p>
+        <div id="suggest-rows"></div>
+      </div>
     </div>
-    <p class="footer-note">página privada — visível apenas com login autorizado</p>
+    <p class="footer-note">página privada — acesso restrito</p>
   </div>
 
 <script>
 (function(){
+  // senha simples — troque aqui se quiser mudar
+  var SENHA = 'biyou2024';
+
+  var overlay = document.getElementById('pw-overlay');
+  var btn = document.getElementById('pw-btn');
+  var input = document.getElementById('pw-input');
+  var err = document.getElementById('pw-err');
+
+  function tentarEntrar() {
+    if (input.value === SENHA) {
+      overlay.style.display = 'none';
+      document.getElementById('main-content').style.display = 'block';
+      carregarDados();
+    } else {
+      err.style.display = 'block';
+      input.value = '';
+      input.focus();
+    }
+  }
+
+  btn.addEventListener('click', tentarEntrar);
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') tentarEntrar();
+  });
+
   var palette = ['var(--dot-blue)','var(--dot-lilac)','var(--dot-pink)','var(--dot-green)','var(--dot-peach)','var(--primary)'];
 
   function renderRows(containerId, items, labelKey, valueKey) {
@@ -111,25 +162,28 @@
     }).join('');
   }
 
-  fetch('/api/analytics')
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('grid').style.display = 'grid';
-      if (data.error) {
-        document.getElementById('grid').innerHTML =
-          '<div class="card" style="grid-column:1/-1"><p class="empty">Erro ao carregar: ' + data.error + '</p></div>';
-        return;
-      }
-      renderRows('region-rows', data.region, 'region', 'users');
-      renderRows('section-rows', data.section, 'section_id', 'avg_seconds');
-      renderRows('instagram-rows', data.instagram, 'location', 'clicks');
-      renderRows('source-rows', data.source, 'channel', 'users');
-      renderRows('device-rows', data.device, 'device', 'users');
-    })
-    .catch(function(err){
-      document.getElementById('loading').textContent = 'Não foi possível carregar os dados agora.';
-    });
+  function carregarDados() {
+    fetch('/api/analytics')
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('grid').style.display = 'grid';
+        if (data.error) {
+          document.getElementById('grid').innerHTML =
+            '<div class="card" style="grid-column:1/-1"><p class="empty">Erro ao carregar: ' + data.error + '</p></div>';
+          return;
+        }
+        renderRows('region-rows', data.region, 'region', 'users');
+        renderRows('section-rows', data.section, 'section_id', 'avg_seconds');
+        renderRows('instagram-rows', data.instagram, 'location', 'clicks');
+        renderRows('source-rows', data.source, 'channel', 'users');
+        renderRows('device-rows', data.device, 'device', 'users');
+        renderRows('suggest-rows', data.suggestions, 'song', 'count');
+      })
+      .catch(function(){
+        document.getElementById('loading').textContent = 'Não foi possível carregar os dados agora.';
+      });
+  }
 })();
 </script>
 </body>
