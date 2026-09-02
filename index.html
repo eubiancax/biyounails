@@ -5424,7 +5424,8 @@ header nav a.is-current::after{width:100%}
 @media (max-width:640px){.biyou-lightbox .bl-nav{width:38px;height:38px;font-size:22px}.biyou-lightbox img{max-height:70vh}}
 
 
-@keyframes biyou-spin-heart{0%{transform:rotate(0deg) scale(1)}50%{transform:rotate(180deg) scale(1.3)}100%{transform:rotate(360deg) scale(1)}}
+@keyframes biyou-heart-pop{0%{transform:scale(1);opacity:1}50%{transform:scale(1.5);opacity:1}65%{transform:scale(1.5);opacity:1}80%{transform:scale(2);opacity:.5}100%{transform:scale(0);opacity:0}}
+@keyframes biyou-particle-float{0%{opacity:1;transform:translate(0,0) scale(1)}50%{opacity:1;transform:translate(calc(var(--px)*.5),calc(var(--py)*.5)) scale(.9)}80%{opacity:.7;transform:translate(var(--px),var(--py)) scale(.5)}100%{opacity:0;transform:translate(var(--px),var(--py)) scale(0.2)}}
 </style>
 
 <style id="biyou-polish">
@@ -6749,10 +6750,21 @@ html.biyou-dark #biyou-theme-toggle { background: rgba(255,255,255,.08) !importa
     document.body.style.overflow=''; img.removeAttribute('src');
   }
 
-  section.addEventListener('click',function(e){
-    var t=e.target;
-    if(t && t.tagName==='IMG' && t.closest('.photo-marquee') && !window._biyouDragged){ e.preventDefault(); open(t.src); }
-  });
+  /* deteccao de toque independente — nao depende do drag do carrossel */
+  var _tapStart=null;
+  section.addEventListener('pointerdown',function(e){
+    if(e.target && e.target.tagName==='IMG') _tapStart={x:e.clientX,y:e.clientY,t:Date.now()};
+    else _tapStart=null;
+  },true);
+  section.addEventListener('pointerup',function(e){
+    if(!_tapStart) return;
+    var dx=Math.abs(e.clientX-_tapStart.x), dy=Math.abs(e.clientY-_tapStart.y), dt=Date.now()-_tapStart.t;
+    if(dx<15 && dy<15 && dt<400){
+      var t=e.target;
+      if(t && t.tagName==='IMG' && t.closest('.photo-marquee')){ open(t.src); }
+    }
+    _tapStart=null;
+  },true);
   ov.querySelector('.bl-close').addEventListener('click',close);
   ov.querySelector('.bl-prev').addEventListener('click',function(e){ e.stopPropagation(); show(idx-1); });
   ov.querySelector('.bl-next').addEventListener('click',function(e){ e.stopPropagation(); show(idx+1); });
@@ -6867,9 +6879,11 @@ document.getElementById('biyou-suggest-btn').addEventListener('click',function()
   if(!val)return;
   if(typeof gtag==='function'){gtag('event','music_suggestion',{song_name:val});}
   inp.value='';
-  msg.innerHTML='obrigada pela sugestão! <span style="display:inline-block;animation:biyou-spin-heart 1s ease-in-out">💙</span>';
+  msg.innerHTML='obrigada pela sugestão! <span class="biyou-burst-wrap" style="display:inline-block;position:relative;width:24px;height:24px;vertical-align:middle;margin-left:8px;text-align:center;line-height:24px"><span style="display:inline-block;animation:biyou-heart-pop .9s ease-in-out forwards;color:#7dc4f8;font-size:18px">♥</span></span>';
+  var bw=msg.querySelector('.biyou-burst-wrap');
+  setTimeout(function(){for(var si=0;si<18;si++){var pk=document.createElement('span');var angle=(si/18)*Math.PI*2+Math.random()*.4;var mob=window.innerWidth<600;var dist=mob?(30+Math.random()*50):(60+Math.random()*120);var px=Math.cos(angle)*dist;var py=Math.sin(angle)*dist;var size=4+Math.random()*7;var dur=5+Math.random()*3;var delay=Math.random()*.2;var colors=['#c2ecff','#ffffff','#d4c4ff','#ffffff','#bae6fd','#ffffff','#e0d4ff','#cff2ff'];var col=colors[si%8];pk.style.cssText='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:'+size+'px;height:'+size+'px;background:'+col+';border-radius:50%;pointer-events:none;box-shadow:0 0 '+(size+2)+'px '+col+';animation:biyou-particle-float '+dur+'s ease-out '+delay+'s forwards;--px:'+px+'px;--py:'+py+'px;opacity:0;';pk.style.opacity='1';bw.appendChild(pk);}},580);
   msg.style.display='block';
-  setTimeout(function(){msg.style.display='none';},3000);
+  setTimeout(function(){msg.style.display='none';},10000);
 });
 document.getElementById('biyou-suggest-input').addEventListener('keydown',function(e){
   if(e.key==='Enter'){document.getElementById('biyou-suggest-btn').click();}
