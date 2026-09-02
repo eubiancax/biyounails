@@ -6750,20 +6750,19 @@ html.biyou-dark #biyou-theme-toggle { background: rgba(255,255,255,.08) !importa
     document.body.style.overflow=''; img.removeAttribute('src');
   }
 
-  /* deteccao de toque independente — nao depende do drag do carrossel */
+  /* deteccao de toque independente — guarda a imagem no pointerdown */
   var _tapStart=null;
-  section.addEventListener('pointerdown',function(e){
-    if(e.target && e.target.tagName==='IMG') _tapStart={x:e.clientX,y:e.clientY,t:Date.now()};
-    else _tapStart=null;
+  document.addEventListener('pointerdown',function(e){
+    var t=e.target;
+    if(t && t.tagName==='IMG' && t.closest && t.closest('.photo-marquee')){
+      _tapStart={x:e.clientX,y:e.clientY,t:Date.now(),src:t.src};
+    } else { _tapStart=null; }
   },true);
-  section.addEventListener('pointerup',function(e){
+  document.addEventListener('pointerup',function(e){
     if(!_tapStart) return;
-    var dx=Math.abs(e.clientX-_tapStart.x), dy=Math.abs(e.clientY-_tapStart.y), dt=Date.now()-_tapStart.t;
-    if(dx<15 && dy<15 && dt<400){
-      var t=e.target;
-      if(t && t.tagName==='IMG' && t.closest('.photo-marquee')){ open(t.src); }
-    }
-    _tapStart=null;
+    var ts=_tapStart; _tapStart=null;
+    var dx=Math.abs(e.clientX-ts.x), dy=Math.abs(e.clientY-ts.y), dt=Date.now()-ts.t;
+    if(dx<15 && dy<15 && dt<500){ open(ts.src); }
   },true);
   ov.querySelector('.bl-close').addEventListener('click',close);
   ov.querySelector('.bl-prev').addEventListener('click',function(e){ e.stopPropagation(); show(idx-1); });
