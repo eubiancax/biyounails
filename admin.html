@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>biyou nails — área master</title>
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<style>
+:root{--radius:1.25rem;--background:oklch(99% .006 95);--foreground:oklch(32% .03 285);--card:oklch(100% 0 0);
+--primary:oklch(74% .11 310);--secondary:oklch(96% .02 320);--muted-foreground:oklch(56% .03 290);
+--accent:oklch(80% .13 350);--border:oklch(93% .015 310);--dot-blue:oklch(78% .1 230);--dot-lilac:oklch(72% .12 300);
+--dot-pink:oklch(76% .16 350);--dot-green:oklch(84% .08 140);--dot-peach:oklch(83% .11 60);--dot-gold:oklch(82% .1 85);
+--shadow:0 18px 40px -24px oklch(40% .08 320 / .45)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--background);color:var(--foreground);font-family:"Manrope",-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:40px 20px 80px}
+.eyebrow{text-align:center;font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;color:var(--primary);margin:0 0 8px}
+h1,h2,h3{font-family:Georgia,"Fogthree",serif;font-weight:400}
+h1{font-size:2.4rem;text-align:center;margin:0 0 20px;letter-spacing:.02em}
+h2{font-size:1.15rem;margin:0 0 4px;display:flex;align-items:center;gap:8px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.tabs{display:flex;justify-content:center;gap:10px;margin-bottom:32px}
+.pill{background:var(--card);border:1px solid color-mix(in oklab,var(--primary) 35%,transparent);color:var(--foreground);
+border-radius:999px;padding:9px 22px;font:inherit;font-size:.85rem;cursor:pointer;transition:.3s}
+.pill:hover{background:color-mix(in oklab,var(--primary) 12%,var(--card))}
+.pill.on,.pill.solid{background:linear-gradient(120deg,var(--accent),var(--primary));color:#fff;border-color:transparent}
+.pill.sm{padding:5px 14px;font-size:.75rem}
+.grid{display:grid;gap:20px;grid-template-columns:1fr}
+@media(min-width:760px){.grid{grid-template-columns:1fr 1fr}.grid.three{grid-template-columns:repeat(3,1fr)}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow)}
+.card.click{cursor:pointer;transition:transform .4s}.card.click:hover{transform:translateY(-4px)}
+.hint{font-size:.75rem;color:var(--muted-foreground);margin:0 0 14px}
+.muted{color:var(--muted-foreground);font-size:.8rem}
+input,textarea,select{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:12px;background:var(--secondary);
+color:var(--foreground);font:inherit;font-size:.85rem;outline:none}
+textarea{min-height:90px;resize:vertical}
+label{display:block;font-size:.72rem;color:var(--muted-foreground);margin:0 0 4px}
+.f{margin-bottom:12px}
+.line{display:grid;grid-template-columns:1fr 110px 32px;gap:8px;margin-bottom:8px}
+.line.pay{grid-template-columns:130px 1fr 110px 32px}
+.x{border:none;background:none;color:var(--muted-foreground);cursor:pointer;font-size:1rem}
+.sum{display:flex;justify-content:space-between;font-size:.88rem;padding:5px 0}
+.sum.big{border-top:1px solid var(--border);margin-top:6px;padding-top:10px;font-weight:700}
+.badge{font-size:.68rem;padding:3px 10px;border-radius:999px;color:#fff;display:inline-block}
+.row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.row .label{flex:0 0 40%;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bw{flex:1;background:var(--secondary);border-radius:999px;height:10px;overflow:hidden}
+.bar{height:100%;border-radius:999px}.row .value{font-size:.8rem;font-weight:700;min-width:36px;text-align:right}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.pw{position:fixed;inset:0;background:var(--background);z-index:9;display:flex;align-items:center;justify-content:center}
+.pw .card{text-align:center;max-width:340px;width:90%;padding:34px 30px}.pw input{text-align:center;margin-bottom:12px}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<div id="pw" class="pw"><div class="card">
+  <p class="eyebrow">biyou nails</p><h2 style="justify-content:center">área master</h2>
+  <p class="hint">digite a senha para continuar</p>
+  <input id="pwi" type="password" placeholder="senha" autofocus>
+  <button id="pwb" class="pill solid" type="button">entrar</button>
+  <p id="pwe" class="hint hide" style="color:var(--dot-pink);margin-top:10px">senha incorreta</p>
+</div></div>
+
+<div id="app" class="wrap hide">
+  <p class="eyebrow">biyou nails</p><h1>área master</h1>
+  <div class="tabs">
+    <button class="pill on" data-t="clientes">clientes</button>
+    <button class="pill" data-t="metricas">métricas do site</button>
+  </div>
+  <div id="clientes"></div>
+  <div id="metricas" class="hide">
+    <p class="muted" style="text-align:center;margin:-12px 0 24px">últimos 28 dias</p>
+    <div id="mload" class="muted" style="text-align:center">carregando dados…</div>
+    <div id="mgrid" class="grid hide">
+      <div class="card"><h2><span class="dot" style="background:var(--dot-blue)"></span>usuários por região</h2><p class="hint">de onde as visitas vêm</p><div id="m-region"></div></div>
+      <div class="card"><h2><span class="dot" style="background:var(--dot-lilac)"></span>tempo médio por seção</h2><p class="hint">segundos</p><div id="m-section"></div></div>
+      <div class="card"><h2><span class="dot" style="background:var(--dot-pink)"></span>cliques no instagram</h2><p class="hint">por botão</p><div id="m-instagram"></div></div>
+      <div class="card"><h2><span class="dot" style="background:var(--dot-green)"></span>origem das visitas</h2><p class="hint">tráfego</p><div id="m-source"></div></div>
+      <div class="card"><h2><span class="dot" style="background:var(--dot-peach)"></span>dispositivo</h2><p class="hint">celular ou computador</p><div id="m-device"></div></div>
+      <div class="card"><h2><span class="dot" style="background:var(--dot-gold)"></span>sugestões de música</h2><p class="hint">indicadas na playlist</p><div id="m-suggest"></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+var STATUS={'orçamento':'var(--dot-blue)','aprovado':'var(--dot-lilac)','em produção':'var(--dot-peach)','enviado':'var(--dot-pink)','finalizado':'var(--dot-green)'};
+var $=function(i){return document.getElementById(i)};
+var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var brl=function(n){return (n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})};
+var num=function(v){return parseFloat(String(v).replace(',','.'))||0};
+
+/* ---------- login ---------- */
+function abrir(){$('pw').classList.add('hide');$('app').classList.remove('hide');init()}
+function entrar(){
+  fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({senha:$('pwi').value})})
+  .then(function(r){if(!r.ok)throw 0;abrir()})
+  .catch(function(){$('pwe').classList.remove('hide');$('pwi').value='';$('pwi').focus()});
+}
+fetch('/api/me').then(function(r){if(r.ok)abrir()}).catch(function(){});
+$('pwb').onclick=entrar;$('pwi').onkeydown=function(e){if(e.key==='Enter')entrar()};
+
+/* ---------- armazenamento: tenta /api/clientes, senão localStorage ---------- */
+var D=[],cur=null,apiOk=false,timer;
+function load(){
+  return fetch('/api/clientes').then(function(r){if(r.status===401){location.reload()}if(!r.ok)throw 0;return r.json()}).then(function(j){apiOk=true;D=j}).catch(function(){
+    try{D=JSON.parse(localStorage.getItem('biyou_clientes')||'[]')}catch(e){D=[]}
+  });
+}
+function save(){
+  if(!apiOk){try{localStorage.setItem('biyou_clientes',JSON.stringify(D))}catch(e){}}
+  if(apiOk){clearTimeout(timer);timer=setTimeout(function(){fetch('/api/clientes',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(D)})},600)}
+}
+
+/* ---------- cálculo ---------- */
+function tk(){var a=new Uint8Array(16);crypto.getRandomValues(a);return Array.prototype.map.call(a,function(b){return ('0'+b.toString(16)).slice(-2)}).join('')}
+function calc(c){
+  var sub=c.itens.reduce(function(a,i){return a+num(i.v)},0);
+  var desc=c.pix?sub*0.05:0;
+  var total=sub-desc+num(c.frete);
+  var pago=c.pagos.reduce(function(a,p){return a+num(p.v)},0);
+  return {sub:sub,desc:desc,total:total,pago:pago,saldo:total-pago,entrada:total*0.4};
+}
+
+/* ---------- lista de clientes ---------- */
+function lista(){
+  cur=null;
+  var h='<div class="top"><p class="muted">'+D.length+' cliente(s)'+(apiOk?'':' · salvo só neste navegador (sem servidor)')+'</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="pill sm" id="sair">sair</button>'+
+  '<button class="pill sm" id="exp">exportar backup</button><button class="pill sm" id="imp">importar</button><button class="pill solid sm" id="novo">+ nova cliente</button></div></div>';
+  if(!D.length)h+='<div class="card"><p class="muted" style="margin:0">nenhuma cliente ainda — clique em “nova cliente”.</p></div>';
+  h+='<div class="grid three">'+D.map(function(c){var t=calc(c);
+    return '<div class="card click" data-id="'+c.id+'"><span class="badge" style="background:'+(STATUS[c.status]||'var(--primary)')+'">'+esc(c.status)+'</span>'+
+    '<h2 style="margin-top:10px;font-size:1.25rem">'+esc(c.nome||'sem nome')+'</h2><p class="hint">'+esc(c.insta)+'</p>'+
+    '<div class="sum"><span>total</span><span>'+brl(t.total)+'</span></div><div class="sum"><span>pago</span><span>'+brl(t.pago)+'</span></div>'+
+    '<div class="sum"><span>falta</span><b>'+brl(t.saldo)+'</b></div></div>'}).join('')+'</div>';
+  $('clientes').innerHTML=h;
+  $('novo').onclick=function(){var c={id:Date.now().toString(36),nome:'',insta:'',status:'orçamento',entrega:'',itens:[{d:'',v:''}],frete:'',pix:true,pagos:[],token:tk(),acesso:true,ideias:'',links:'',obs:''};D.unshift(c);save();detalhe(c.id)};
+  $('sair').onclick=function(){fetch('/api/logout',{method:'POST'}).then(function(){location.reload()})};
+  $('exp').onclick=function(){var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(D,null,1)],{type:'application/json'}));a.download='biyou-clientes.json';a.click()};
+  $('imp').onclick=function(){var f=document.createElement('input');f.type='file';f.accept='.json';f.onchange=function(){var r=new FileReader();r.onload=function(){try{D=JSON.parse(r.result);save();lista()}catch(e){alert('arquivo inválido')}};r.readAsText(f.files[0])};f.click()};
+  [].forEach.call(document.querySelectorAll('.card.click'),function(el){el.onclick=function(){detalhe(el.dataset.id)}});
+}
+
+/* ---------- página da cliente ---------- */
+function detalhe(id){
+  cur=D.filter(function(c){return c.id===id})[0];if(!cur)return lista();var c=cur;
+  if(!c.token){c.token=tk();c.acesso=true;save()}
+  var link=location.origin+'/cliente.html?t='+c.token;
+  var opts=Object.keys(STATUS).map(function(s){return '<option'+(s===c.status?' selected':'')+'>'+s+'</option>'}).join('');
+  $('clientes').innerHTML=
+  '<div class="top"><button class="pill sm" id="volta">← clientes</button><div style="display:flex;gap:8px"><button class="pill sm" id="resumo">copiar resumo</button><button class="pill sm" id="del">excluir</button></div></div>'+
+  '<div class="grid">'+
+  '<div class="card"><h2><span class="dot" style="background:var(--dot-lilac)"></span>cliente</h2><p class="hint">dados do pedido</p>'+
+    '<div class="f"><label>nome</label><input data-k="nome" value="'+esc(c.nome)+'"></div>'+
+    '<div class="f"><label>instagram / contato</label><input data-k="insta" value="'+esc(c.insta)+'"></div>'+
+    '<div class="grid" style="gap:12px"><div class="f"><label>status</label><select data-k="status">'+opts+'</select></div>'+
+    '<div class="f"><label>entrega prevista</label><input type="date" data-k="entrega" value="'+esc(c.entrega)+'"></div></div>'+
+    '<div class="f"><label>link de acesso da cliente</label><input readonly value="'+esc(link)+'" onclick="this.select()"></div>'+
+    '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="pill sm" id="clink">copiar link</button><label style="margin:0;display:flex;gap:6px;align-items:center"><input type="checkbox" id="ac" style="width:auto"'+(c.acesso!==false?' checked':'')+'> acesso liberado</label></div></div>'+
+  '<div class="card"><h2><span class="dot" style="background:var(--dot-green)"></span>resumo financeiro</h2><p class="hint">pix com 5% de desconto · entrada de 40%</p><div id="tot"></div></div>'+
+  '<div class="card"><h2><span class="dot" style="background:var(--dot-pink)"></span>orçamento</h2><p class="hint">itens do pedido</p><div id="itens"></div>'+
+    '<button class="pill sm" id="addi">+ item</button>'+
+    '<div class="grid" style="gap:12px;margin-top:14px"><div class="f"><label>frete (R$)</label><input data-k="frete" value="'+esc(c.frete)+'" inputmode="decimal"></div>'+
+    '<div class="f"><label>pagamento</label><select data-k="pix"><option value="1"'+(c.pix?' selected':'')+'>pix (−5%)</option><option value="0"'+(c.pix?'':' selected')+'>cartão</option></select></div></div></div>'+
+  '<div class="card"><h2><span class="dot" style="background:var(--dot-peach)"></span>pagamentos</h2><p class="hint">valores já recebidos</p><div id="pagos"></div><button class="pill sm" id="addp">+ pagamento</button></div>'+
+  '<div class="card" style="grid-column:1/-1"><h2><span class="dot" style="background:var(--dot-blue)"></span>ideias e referências</h2><p class="hint">cores, charms, formato, links do pinterest…</p>'+
+    '<div class="grid"><div class="f"><label>ideias</label><textarea data-k="ideias">'+esc(c.ideias)+'</textarea></div>'+
+    '<div class="f"><label>links de referência (um por linha)</label><textarea data-k="links">'+esc(c.links)+'</textarea></div></div>'+
+    '<div class="f"><label>observações internas (a cliente não vê)</label><textarea data-k="obs">'+esc(c.obs)+'</textarea></div><div id="lk"></div></div></div>';
+  [].forEach.call(document.querySelectorAll('[data-k]'),function(el){
+    el.oninput=el.onchange=function(){var k=el.dataset.k,v=el.value;c[k]=k==='pix'?v==='1':v;save();totais();if(k==='links')links()}});
+  $('clink').onclick=function(){navigator.clipboard.writeText(link).then(function(){$('clink').textContent='copiado ✓';setTimeout(function(){$('clink').textContent='copiar link'},1500)})};
+  $('ac').onchange=function(){c.acesso=$('ac').checked;save()};
+  $('volta').onclick=function(){lista()};
+  $('del').onclick=function(){if(confirm('excluir esta cliente?')){D=D.filter(function(x){return x!==c});save();lista()}};
+  $('addi').onclick=function(){c.itens.push({d:'',v:''});save();linhas()};
+  $('addp').onclick=function(){c.pagos.push({data:new Date().toISOString().slice(0,10),forma:'pix',v:''});save();linhas()};
+  $('resumo').onclick=function(){var t=calc(c);var s='olá, '+c.nome+'! resumo do seu pedido biyou nails:\n\n'+
+    c.itens.map(function(i){return '• '+i.d+': '+brl(num(i.v))}).join('\n')+(t.desc?'\n\ndesconto pix: −'+brl(t.desc):'')+(num(c.frete)?'\nfrete: '+brl(num(c.frete)):'')+
+    '\ntotal: '+brl(t.total)+'\npago: '+brl(t.pago)+'\nfalta: '+brl(t.saldo)+(c.entrega?'\nentrega prevista: '+c.entrega.split('-').reverse().join('/'):'');
+    navigator.clipboard.writeText(s).then(function(){$('resumo').textContent='copiado ✓';setTimeout(function(){$('resumo').textContent='copiar resumo'},1500)})};
+  linhas();totais();links();
+}
+function linhas(){
+  var c=cur;
+  $('itens').innerHTML=c.itens.map(function(i,n){return '<div class="line"><input data-i="'+n+'" data-f="d" placeholder="ex: set curto francesinha com charms" value="'+esc(i.d)+'"><input data-i="'+n+'" data-f="v" placeholder="R$" inputmode="decimal" value="'+esc(i.v)+'"><button class="x" data-rm="i'+n+'">✕</button></div>'}).join('');
+  $('pagos').innerHTML=c.pagos.length?c.pagos.map(function(p,n){return '<div class="line pay"><input type="date" data-p="'+n+'" data-f="data" value="'+esc(p.data)+'"><input data-p="'+n+'" data-f="forma" placeholder="forma" value="'+esc(p.forma)+'"><input data-p="'+n+'" data-f="v" placeholder="R$" inputmode="decimal" value="'+esc(p.v)+'"><button class="x" data-rm="p'+n+'">✕</button></div>'}).join(''):'<p class="muted">nenhum pagamento ainda</p>';
+  [].forEach.call(document.querySelectorAll('[data-i],[data-p]'),function(el){el.oninput=function(){
+    (el.dataset.i!=null?cur.itens[el.dataset.i]:cur.pagos[el.dataset.p])[el.dataset.f]=el.value;save();totais()}});
+  [].forEach.call(document.querySelectorAll('[data-rm]'),function(b){b.onclick=function(){var r=b.dataset.rm;(r[0]==='i'?cur.itens:cur.pagos).splice(+r.slice(1),1);save();linhas();totais()}});
+}
+function totais(){
+  var t=calc(cur);
+  $('tot').innerHTML='<div class="sum"><span>subtotal</span><span>'+brl(t.sub)+'</span></div>'+
+  (t.desc?'<div class="sum"><span>desconto pix</span><span>−'+brl(t.desc)+'</span></div>':'')+
+  '<div class="sum"><span>frete</span><span>'+brl(num(cur.frete))+'</span></div>'+
+  '<div class="sum big"><span>total</span><span>'+brl(t.total)+'</span></div>'+
+  '<div class="sum"><span>entrada sugerida (40%)</span><span>'+brl(t.entrada)+'</span></div>'+
+  '<div class="sum"><span>já pago</span><span>'+brl(t.pago)+'</span></div>'+
+  '<div class="sum big"><span>falta pagar</span><span style="color:'+(t.saldo>0.009?'var(--dot-pink)':'oklch(60% .12 150)')+'">'+brl(t.saldo)+'</span></div>';
+}
+function links(){
+  $('lk').innerHTML=(cur.links||'').split('\n').filter(function(l){return /^https?:\/\//.test(l.trim())}).map(function(l){
+    return '<a class="pill sm" style="text-decoration:none;display:inline-block;margin:0 6px 6px 0" target="_blank" rel="noopener noreferrer" href="'+esc(l.trim())+'">abrir link ↗</a>'}).join('');
+}
+
+/* ---------- métricas ---------- */
+var pal=['var(--dot-blue)','var(--dot-lilac)','var(--dot-pink)','var(--dot-green)','var(--dot-peach)','var(--primary)'],mDone=false;
+function rows(id,items,lk,vk){
+  var el=$(id);if(!items||!items.length){el.innerHTML='<p class="muted">sem dados ainda</p>';return}
+  var max=Math.max.apply(null,items.map(function(i){return i[vk]}))||1;
+  el.innerHTML=items.map(function(it,n){return '<div class="row"><span class="label" title="'+esc(it[lk])+'">'+esc(it[lk])+'</span><span class="bw"><span class="bar" style="display:block;width:'+Math.max(4,Math.round(it[vk]/max*100))+'%;background:'+pal[n%6]+'"></span></span><span class="value">'+esc(it[vk])+'</span></div>'}).join('');
+}
+function metricas(){
+  if(mDone)return;mDone=true;
+  fetch('/api/analytics').then(function(r){return r.json()}).then(function(d){
+    $('mload').classList.add('hide');$('mgrid').classList.remove('hide');
+    if(d.error){$('mgrid').innerHTML='<div class="card" style="grid-column:1/-1"><p class="muted">Erro ao carregar: '+esc(d.error)+'</p></div>';return}
+    rows('m-region',d.region,'region','users');rows('m-section',d.section,'section_id','avg_seconds');rows('m-instagram',d.instagram,'location','clicks');
+    rows('m-source',d.source,'channel','users');rows('m-device',d.device,'device','users');rows('m-suggest',d.suggestions,'song','count');
+  }).catch(function(){mDone=false;$('mload').textContent='Não foi possível carregar os dados agora.'});
+}
+
+/* ---------- abas ---------- */
+function init(){
+  load().then(lista);
+  [].forEach.call(document.querySelectorAll('.tabs .pill'),function(b){b.onclick=function(){
+    [].forEach.call(document.querySelectorAll('.tabs .pill'),function(x){x.classList.toggle('on',x===b)});
+    $('clientes').classList.toggle('hide',b.dataset.t!=='clientes');$('metricas').classList.toggle('hide',b.dataset.t!=='metricas');
+    if(b.dataset.t==='metricas')metricas()}});
+}
+})();
+</script>
+</body>
+</html>
