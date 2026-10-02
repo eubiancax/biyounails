@@ -114,6 +114,9 @@ function save(){
 
 /* ---------- cálculo ---------- */
 function tk(){var a=new Uint8Array(16);crypto.getRandomValues(a);return Array.prototype.map.call(a,function(b){return ('0'+b.toString(16)).slice(-2)}).join('')}
+function norm(c){return {id:String(c.id||tk().slice(0,8)),nome:c.nome||c.name||'',insta:c.insta||c.instagram||'',status:STATUS[c.status]?c.status:'orçamento',entrega:c.entrega||'',
+  itens:Array.isArray(c.itens)&&c.itens.length?c.itens:[{d:'',v:''}],frete:c.frete||'',pix:c.pix!==false,pagos:Array.isArray(c.pagos)?c.pagos:[],
+  token:/^[a-f0-9]{32}$/.test(c.token||'')?c.token:tk(),acesso:c.acesso!==false,ideias:c.ideias||'',links:Array.isArray(c.links)?c.links.join('\n'):(c.links||''),obs:c.obs||''}}
 function calc(c){
   var sub=c.itens.reduce(function(a,i){return a+num(i.v)},0);
   var desc=c.pix?sub*0.05:0;
@@ -137,7 +140,12 @@ function lista(){
   $('novo').onclick=function(){var c={id:Date.now().toString(36),nome:'',insta:'',status:'orçamento',entrega:'',itens:[{d:'',v:''}],frete:'',pix:true,pagos:[],token:tk(),acesso:true,ideias:'',links:'',obs:''};D.unshift(c);save();detalhe(c.id)};
   $('sair').onclick=function(){fetch('/api/logout',{method:'POST'}).then(function(){location.reload()})};
   $('exp').onclick=function(){var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(D,null,1)],{type:'application/json'}));a.download='biyou-clientes.json';a.click()};
-  $('imp').onclick=function(){var f=document.createElement('input');f.type='file';f.accept='.json';f.onchange=function(){var r=new FileReader();r.onload=function(){try{D=JSON.parse(r.result);save();lista()}catch(e){alert('arquivo inválido')}};r.readAsText(f.files[0])};f.click()};
+  $('imp').onclick=function(){var f=document.createElement('input');f.type='file';f.accept='.json,application/json,text/plain';f.onchange=function(){var r=new FileReader();r.onload=function(){
+    var j;try{j=JSON.parse(r.result)}catch(e){return alert('não consegui ler o arquivo: ele não é um JSON válido ('+e.message+')')}
+    var l=Array.isArray(j)?j:(j&&Array.isArray(j.clientes)?j.clientes:(j&&typeof j==='object'?[j]:null));
+    if(!l||!l.length)return alert('o arquivo está vazio ou num formato que não reconheço');
+    l.filter(function(x){return x&&typeof x==='object'}).forEach(function(x){var n=norm(x),i=D.findIndex(function(d){return d.id===n.id});if(i>=0)D[i]=n;else D.push(n)});
+    save();lista();alert(l.length+' cliente(s) importada(s)')};r.readAsText(f.files[0])};f.click()};
   [].forEach.call(document.querySelectorAll('.card.click'),function(el){el.onclick=function(){detalhe(el.dataset.id)}});
 }
 
