@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>biyou nails — seu pedido</title>
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<script src="https://www.youtube.com/iframe_api" async></script>
+<style>
+:root{--radius:1.25rem;--background:oklch(99% .006 95);--foreground:oklch(32% .03 285);--card:oklch(100% 0 0);
+--primary:oklch(74% .11 310);--secondary:oklch(96% .02 320);--muted-foreground:oklch(56% .03 290);--accent:oklch(80% .13 350);
+--border:oklch(93% .015 310);--dot-blue:oklch(78% .1 230);--dot-lilac:oklch(72% .12 300);--dot-pink:oklch(76% .16 350);
+--dot-green:oklch(84% .08 140);--dot-peach:oklch(83% .11 60);--shadow:0 18px 40px -24px oklch(40% .08 320 / .45)}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(160deg,oklch(99% .01 95),oklch(97% .02 330));min-height:100vh;color:var(--foreground);font-family:"Manrope",-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:760px;margin:0 auto;padding:48px 20px 80px}
+.eyebrow{text-align:center;font-size:.75rem;letter-spacing:.3em;color:var(--muted-foreground);margin:0}
+h1,h2{font-family:Georgia,"Fogthree",serif;font-weight:400}
+h1{font-size:2.8rem;text-align:center;margin:14px 0 6px}h1 span{color:var(--accent)}
+.sub{text-align:center;color:var(--muted-foreground);margin:0 0 32px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);margin-bottom:20px}
+h2{font-size:1.1rem;margin:0 0 14px;display:flex;align-items:center;gap:8px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.sum{display:flex;justify-content:space-between;gap:12px;font-size:.9rem;padding:6px 0}
+.sum.big{border-top:1px solid var(--border);margin-top:6px;padding-top:12px;font-weight:700}
+.steps{display:flex;justify-content:space-between;gap:6px}
+.st{flex:1;text-align:center;font-size:.68rem;color:var(--muted-foreground)}
+.st i{display:block;height:8px;border-radius:99px;background:var(--secondary);margin-bottom:6px}
+.st.on i{background:linear-gradient(90deg,var(--accent),var(--primary))}.st.on{color:var(--foreground)}
+.txt{white-space:pre-wrap;font-size:.9rem;line-height:1.6;color:var(--muted-foreground);margin:0 0 10px}
+a.pill{display:inline-block;text-decoration:none;color:var(--foreground);border:1px solid color-mix(in oklab,var(--primary) 35%,transparent);border-radius:99px;padding:6px 14px;font-size:.78rem;margin:0 6px 6px 0}
+.pl{display:flex;align-items:center;gap:14px}
+.orb{width:56px;height:56px;border-radius:50%;flex:none;background:conic-gradient(var(--dot-blue),var(--dot-lilac),var(--dot-pink),var(--dot-peach),var(--dot-blue));box-shadow:inset 0 0 0 14px var(--card),inset 0 0 0 16px var(--border)}
+.orb.spin{animation:s 6s linear infinite}@keyframes s{to{transform:rotate(360deg)}}
+.pl .t{flex:1;min-width:0;font-family:Georgia,serif;font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pl small{display:block;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted-foreground);font-family:inherit}
+.b{border:none;background:var(--secondary);color:var(--foreground);width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:.9rem}
+.b.p{background:var(--primary);color:#fff;width:46px;height:46px}
+input[type=range]{width:100%;accent-color:var(--primary);margin-top:12px}
+.msg{text-align:center;color:var(--muted-foreground);padding:80px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">biyou nails</p>
+  <div id="main"><p class="msg">carregando…</p></div>
+</div>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var brl=function(n){return (n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})};
+var num=function(v){return parseFloat(String(v).replace(',','.'))||0};
+var ETAPAS=['orçamento','aprovado','em produção','enviado','finalizado'];
+var t=new URLSearchParams(location.search).get('t')||'';
+fetch('/api/cliente?t='+encodeURIComponent(t)).then(function(r){if(!r.ok)throw 0;return r.json()}).then(draw)
+.catch(function(){$('main').innerHTML='<p class="msg">este link não está disponível.<br>fale com a biyou no instagram 💜</p>'});
+
+function draw(c){
+  var sub=c.itens.reduce(function(a,i){return a+num(i.v)},0),desc=c.pix?sub*.05:0,total=sub-desc+num(c.frete);
+  var pago=c.pagos.reduce(function(a,p){return a+num(p.v)},0),falta=total-pago,idx=Math.max(0,ETAPAS.indexOf(c.status));
+  var h='<h1>olá, <span>'+esc((c.nome||'').split(' ')[0])+'</span>!</h1><p class="sub">aqui você acompanha o seu pedido</p>'+
+  '<div class="card"><h2><span class="dot" style="background:var(--dot-lilac)"></span>andamento</h2><div class="steps">'+
+  ETAPAS.map(function(e,n){return '<div class="st'+(n<=idx?' on':'')+'"><i></i>'+e+'</div>'}).join('')+'</div>'+
+  (c.entrega?'<p class="txt" style="margin-top:14px">entrega prevista: <b style="color:var(--foreground)">'+esc(c.entrega.split('-').reverse().join('/'))+'</b></p>':'')+'</div>'+
+  '<div class="card"><h2><span class="dot" style="background:var(--dot-pink)"></span>orçamento</h2>'+
+  c.itens.filter(function(i){return i.d||i.v}).map(function(i){return '<div class="sum"><span>'+esc(i.d)+'</span><span>'+brl(num(i.v))+'</span></div>'}).join('')+
+  (desc?'<div class="sum"><span>desconto pix (5%)</span><span>−'+brl(desc)+'</span></div>':'')+
+  (num(c.frete)?'<div class="sum"><span>frete</span><span>'+brl(num(c.frete))+'</span></div>':'')+
+  '<div class="sum big"><span>total</span><span>'+brl(total)+'</span></div></div>'+
+  '<div class="card"><h2><span class="dot" style="background:var(--dot-green)"></span>pagamentos</h2>'+
+  (c.pagos.length?c.pagos.map(function(p){return '<div class="sum"><span>'+esc((p.data||'').split('-').reverse().join('/'))+' · '+esc(p.forma)+'</span><span>'+brl(num(p.v))+'</span></div>'}).join(''):'<p class="txt">nenhum pagamento registrado ainda</p>')+
+  '<div class="sum big"><span>falta pagar</span><span>'+(falta>.009?brl(falta):'tudo certo ✓')+'</span></div></div>';
+  var lk=(c.links||'').split('\n').map(function(l){return l.trim()}).filter(function(l){return /^https?:\/\//.test(l)});
+  if(c.ideias||lk.length)h+='<div class="card"><h2><span class="dot" style="background:var(--dot-blue)"></span>ideias e referências</h2>'+
+    (c.ideias?'<p class="txt">'+esc(c.ideias)+'</p>':'')+lk.map(function(l){return '<a class="pill" target="_blank" rel="noopener noreferrer" href="'+esc(l)+'">abrir referência ↗</a>'}).join('')+'</div>';
+  h+='<div class="card"><h2><span class="dot" style="background:var(--dot-peach)"></span>nossa playlist</h2><div class="pl"><div id="orb" class="orb"></div>'+
+  '<div class="t"><small>tocando agora</small><span id="tt">carregando…</span></div>'+
+  '<button class="b" id="pv" aria-label="anterior">⏮</button><button class="b p" id="pp" aria-label="tocar">▶</button><button class="b" id="nx" aria-label="próxima">⏭</button></div>'+
+  '<input id="vol" type="range" min="0" max="100" value="30" aria-label="volume"><div style="position:absolute;left:-9999px;width:320px;height:180px;opacity:.01"><div id="yt"></div></div></div>'+
+  '<p class="eyebrow" style="margin-top:30px;letter-spacing:.1em">let your nails be like you</p>';
+  $('main').innerHTML=h;player();
+}
+
+/* playlist — mesma do site */
+var PLAYLIST='PLAfsW0Gx9jic',yt,playing=false;
+function player(){
+  if(!(window.YT&&YT.Player)){return setTimeout(player,400)}
+  yt=new YT.Player('yt',{height:'180',width:'320',playerVars:{listType:'playlist',list:PLAYLIST,controls:0,playsinline:1,rel:0,origin:location.origin},
+    events:{onReady:function(){yt.setVolume(30);yt.setShuffle&&yt.setShuffle(true);title()},
+    onStateChange:function(e){playing=e.data===1;$('pp').textContent=playing?'⏸':'▶';$('orb').classList.toggle('spin',playing);title()}}});
+  $('pp').onclick=function(){playing?yt.pauseVideo():yt.playVideo()};
+  $('pv').onclick=function(){yt.previousVideo()};$('nx').onclick=function(){yt.nextVideo()};
+  $('vol').oninput=function(){yt.setVolume(+this.value)};
+}
+function title(){try{var d=yt.getVideoData();if(d&&d.title)$('tt').textContent=d.title}catch(e){}}
+})();
+</script>
+</body>
+</html>
