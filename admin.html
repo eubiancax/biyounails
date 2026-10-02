@@ -49,6 +49,7 @@ label{display:block;font-size:.72rem;color:var(--muted-foreground);margin:0 0 4p
 .top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap}
 .pw{position:fixed;inset:0;background:var(--background);z-index:9;display:flex;align-items:center;justify-content:center}
 .pw .card{text-align:center;max-width:340px;width:90%;padding:34px 30px}.pw input{text-align:center;margin-bottom:12px}
+.prow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--border);border-radius:14px;margin-bottom:8px;cursor:pointer;background:var(--secondary);transition:.3s}.prow:hover{border-color:var(--primary)}
 .hide{display:none!important}
 </style>
 </head>
@@ -113,102 +114,116 @@ function save(){
 }
 
 /* ---------- cálculo ---------- */
+var curP=null;
 function tk(){var a=new Uint8Array(16);crypto.getRandomValues(a);return Array.prototype.map.call(a,function(b){return ('0'+b.toString(16)).slice(-2)}).join('')}
-function norm(c){return {id:String(c.id||tk().slice(0,8)),nome:c.nome||c.name||'',insta:c.insta||c.instagram||'',status:STATUS[c.status]?c.status:'orçamento',entrega:c.entrega||'',
-  itens:Array.isArray(c.itens)&&c.itens.length?c.itens:[{d:'',v:''}],frete:c.frete||'',pix:c.pix!==false,pagos:Array.isArray(c.pagos)?c.pagos:[],
-  token:/^[a-f0-9]{32}$/.test(c.token||'')?c.token:tk(),acesso:c.acesso!==false,ideias:c.ideias||'',links:Array.isArray(c.links)?c.links.join('\n'):(c.links||''),obs:c.obs||''}}
-function calc(c){
-  var sub=c.itens.reduce(function(a,i){return a+num(i.v)},0);
-  var desc=c.pix?sub*0.05:0;
-  var total=sub-desc+num(c.frete);
-  var pago=c.pagos.reduce(function(a,p){return a+num(p.v)},0);
+function pNovo(){return {id:tk().slice(0,8),nome:'',status:'orçamento',entrega:'',itens:[{d:'',v:''}],frete:'',pix:true,pagos:[],ideias:'',links:''}}
+function norm(c){
+  var ps=Array.isArray(c.pedidos)?c.pedidos:((c.itens||c.pagos||c.ideias)?[{nome:'pedido 1',status:c.status,entrega:c.entrega,itens:c.itens,frete:c.frete,pix:c.pix,pagos:c.pagos,ideias:c.ideias,links:c.links}]:[]);
+  return {id:String(c.id||tk().slice(0,8)),nome:c.nome||c.name||'',insta:c.insta||c.instagram||'',medidas:c.medidas||'',obs:c.obs||'',
+    token:/^[a-f0-9]{32}$/.test(c.token||'')?c.token:tk(),acesso:c.acesso!==false,
+    pedidos:ps.map(function(p){var b=pNovo();return {id:String(p.id||b.id),nome:p.nome||p.name||'',status:STATUS[p.status]?p.status:'orçamento',entrega:p.entrega||'',
+      itens:Array.isArray(p.itens)&&p.itens.length?p.itens:b.itens,frete:p.frete||'',pix:p.pix!==false,pagos:Array.isArray(p.pagos)?p.pagos:[],ideias:p.ideias||'',
+      links:Array.isArray(p.links)?p.links.join('\n'):(p.links||'')}})};
+}
+function calc(p){
+  var sub=p.itens.reduce(function(a,i){return a+num(i.v)},0),desc=p.pix?sub*0.05:0,total=sub-desc+num(p.frete),pago=p.pagos.reduce(function(a,x){return a+num(x.v)},0);
   return {sub:sub,desc:desc,total:total,pago:pago,saldo:total-pago,entrada:total*0.4};
 }
+function calcC(c){var r={total:0,pago:0,saldo:0};c.pedidos.forEach(function(p){var t=calc(p);r.total+=t.total;r.pago+=t.pago;r.saldo+=t.saldo});return r}
+function bind(obj,after){[].forEach.call(document.querySelectorAll('[data-k]'),function(el){el.oninput=el.onchange=function(){var k=el.dataset.k,v=el.value;obj[k]=k==='pix'?v==='1':v;save();after&&after(k)}})}
+function sumRows(t,ent){return '<div class="sum"><span>total</span><span>'+brl(t.total)+'</span></div>'+(ent?'<div class="sum"><span>entrada sugerida (40%)</span><span>'+brl(t.entrada)+'</span></div>':'')+
+  '<div class="sum"><span>já pago</span><span>'+brl(t.pago)+'</span></div><div class="sum big"><span>falta pagar</span><span style="color:'+(t.saldo>0.009?'var(--dot-pink)':'oklch(60% .12 150)')+'">'+brl(t.saldo)+'</span></div>'}
 
 /* ---------- lista de clientes ---------- */
 function lista(){
-  cur=null;
+  cur=null;curP=null;
   var h='<div class="top"><p class="muted">'+D.length+' cliente(s)'+(apiOk?'':' · salvo só neste navegador (sem servidor)')+'</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="pill sm" id="sair">sair</button>'+
   '<button class="pill sm" id="exp">exportar backup</button><button class="pill sm" id="imp">importar</button><button class="pill solid sm" id="novo">+ nova cliente</button></div></div>';
   if(!D.length)h+='<div class="card"><p class="muted" style="margin:0">nenhuma cliente ainda — clique em “nova cliente”.</p></div>';
-  h+='<div class="grid three">'+D.map(function(c){var t=calc(c);
-    return '<div class="card click" data-id="'+c.id+'"><span class="badge" style="background:'+(STATUS[c.status]||'var(--primary)')+'">'+esc(c.status)+'</span>'+
-    '<h2 style="margin-top:10px;font-size:1.25rem">'+esc(c.nome||'sem nome')+'</h2><p class="hint">'+esc(c.insta)+'</p>'+
-    '<div class="sum"><span>total</span><span>'+brl(t.total)+'</span></div><div class="sum"><span>pago</span><span>'+brl(t.pago)+'</span></div>'+
+  h+='<div class="grid three">'+D.map(function(c){var t=calcC(c);
+    return '<div class="card click" data-id="'+c.id+'"><h2 style="font-size:1.25rem">'+esc(c.nome||'sem nome')+'</h2><p class="hint">'+esc(c.insta)+'</p>'+
+    '<div class="sum"><span>pedidos</span><span>'+c.pedidos.length+'</span></div><div class="sum"><span>pago</span><span>'+brl(t.pago)+'</span></div>'+
     '<div class="sum"><span>falta</span><b>'+brl(t.saldo)+'</b></div></div>'}).join('')+'</div>';
   $('clientes').innerHTML=h;
-  $('novo').onclick=function(){var c={id:Date.now().toString(36),nome:'',insta:'',status:'orçamento',entrega:'',itens:[{d:'',v:''}],frete:'',pix:true,pagos:[],token:tk(),acesso:true,ideias:'',links:'',obs:''};D.unshift(c);save();detalhe(c.id)};
+  $('novo').onclick=function(){var c=norm({nome:'',pedidos:[]});D.unshift(c);save();perfil(c.id)};
   $('sair').onclick=function(){fetch('/api/logout',{method:'POST'}).then(function(){location.reload()})};
   $('exp').onclick=function(){var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(D,null,1)],{type:'application/json'}));a.download='biyou-clientes.json';a.click()};
   $('imp').onclick=function(){var f=document.createElement('input');f.type='file';f.accept='.json,application/json,text/plain';f.onchange=function(){var r=new FileReader();r.onload=function(){
-    var j;try{j=JSON.parse(r.result)}catch(e){return alert('não consegui ler o arquivo: ele não é um JSON válido ('+e.message+')')}
+    var j;try{j=JSON.parse(r.result)}catch(e){return alert('não consegui ler o arquivo: não é um JSON válido ('+e.message+')')}
     var l=Array.isArray(j)?j:(j&&Array.isArray(j.clientes)?j.clientes:(j&&typeof j==='object'?[j]:null));
     if(!l||!l.length)return alert('o arquivo está vazio ou num formato que não reconheço');
     l.filter(function(x){return x&&typeof x==='object'}).forEach(function(x){var n=norm(x),i=D.findIndex(function(d){return d.id===n.id});if(i>=0)D[i]=n;else D.push(n)});
     save();lista();alert(l.length+' cliente(s) importada(s)')};r.readAsText(f.files[0])};f.click()};
-  [].forEach.call(document.querySelectorAll('.card.click'),function(el){el.onclick=function(){detalhe(el.dataset.id)}});
+  [].forEach.call(document.querySelectorAll('.card.click'),function(el){el.onclick=function(){perfil(el.dataset.id)}});
 }
 
-/* ---------- página da cliente ---------- */
-function detalhe(id){
-  cur=D.filter(function(c){return c.id===id})[0];if(!cur)return lista();var c=cur;
-  if(!c.token){c.token=tk();c.acesso=true;save()}
-  var link=location.origin+'/cliente.html?t='+c.token;
-  var opts=Object.keys(STATUS).map(function(s){return '<option'+(s===c.status?' selected':'')+'>'+s+'</option>'}).join('');
+/* ---------- perfil da cliente ---------- */
+function perfil(id){
+  cur=D.filter(function(c){return c.id===id})[0];if(!cur)return lista();curP=null;
+  var c=cur,t=calcC(c),link=location.origin+'/cliente.html?t='+c.token;
   $('clientes').innerHTML=
-  '<div class="top"><button class="pill sm" id="volta">← clientes</button><div style="display:flex;gap:8px"><button class="pill sm" id="resumo">copiar resumo</button><button class="pill sm" id="del">excluir</button></div></div>'+
-  '<div class="grid">'+
-  '<div class="card"><h2><span class="dot" style="background:var(--dot-lilac)"></span>cliente</h2><p class="hint">dados do pedido</p>'+
-    '<div class="f"><label>nome</label><input data-k="nome" value="'+esc(c.nome)+'"></div>'+
-    '<div class="f"><label>instagram / contato</label><input data-k="insta" value="'+esc(c.insta)+'"></div>'+
-    '<div class="grid" style="gap:12px"><div class="f"><label>status</label><select data-k="status">'+opts+'</select></div>'+
-    '<div class="f"><label>entrega prevista</label><input type="date" data-k="entrega" value="'+esc(c.entrega)+'"></div></div>'+
+  '<div class="top"><button class="pill sm" id="volta">← clientes</button><button class="pill sm" id="del">excluir cliente</button></div><div class="grid">'+
+  '<div class="card"><h2><span class="dot" style="background:var(--dot-lilac)"></span>cliente</h2><p class="hint">dados e acesso</p>'+
+    '<div class="f"><label>nome</label><input data-k="nome" value="'+esc(c.nome)+'"></div><div class="f"><label>instagram / contato</label><input data-k="insta" value="'+esc(c.insta)+'"></div>'+
     '<div class="f"><label>link de acesso da cliente</label><input readonly value="'+esc(link)+'" onclick="this.select()"></div>'+
     '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="pill sm" id="clink">copiar link</button><label style="margin:0;display:flex;gap:6px;align-items:center"><input type="checkbox" id="ac" style="width:auto"'+(c.acesso!==false?' checked':'')+'> acesso liberado</label></div></div>'+
-  '<div class="card"><h2><span class="dot" style="background:var(--dot-green)"></span>resumo financeiro</h2><p class="hint">pix com 5% de desconto · entrada de 40%</p><div id="tot"></div></div>'+
-  '<div class="card"><h2><span class="dot" style="background:var(--dot-pink)"></span>orçamento</h2><p class="hint">itens do pedido</p><div id="itens"></div>'+
-    '<button class="pill sm" id="addi">+ item</button>'+
-    '<div class="grid" style="gap:12px;margin-top:14px"><div class="f"><label>frete (R$)</label><input data-k="frete" value="'+esc(c.frete)+'" inputmode="decimal"></div>'+
-    '<div class="f"><label>pagamento</label><select data-k="pix"><option value="1"'+(c.pix?' selected':'')+'>pix (−5%)</option><option value="0"'+(c.pix?'':' selected')+'>cartão</option></select></div></div></div>'+
-  '<div class="card"><h2><span class="dot" style="background:var(--dot-peach)"></span>pagamentos</h2><p class="hint">valores já recebidos</p><div id="pagos"></div><button class="pill sm" id="addp">+ pagamento</button></div>'+
-  '<div class="card" style="grid-column:1/-1"><h2><span class="dot" style="background:var(--dot-blue)"></span>ideias e referências</h2><p class="hint">cores, charms, formato, links do pinterest…</p>'+
-    '<div class="grid"><div class="f"><label>ideias</label><textarea data-k="ideias">'+esc(c.ideias)+'</textarea></div>'+
-    '<div class="f"><label>links de referência (um por linha)</label><textarea data-k="links">'+esc(c.links)+'</textarea></div></div>'+
-    '<div class="f"><label>observações internas (a cliente não vê)</label><textarea data-k="obs">'+esc(c.obs)+'</textarea></div><div id="lk"></div></div></div>';
-  [].forEach.call(document.querySelectorAll('[data-k]'),function(el){
-    el.oninput=el.onchange=function(){var k=el.dataset.k,v=el.value;c[k]=k==='pix'?v==='1':v;save();totais();if(k==='links')links()}});
+  '<div class="card"><h2><span class="dot" style="background:var(--dot-green)"></span>resumo geral</h2><p class="hint">soma de todos os pedidos</p>'+sumRows(t)+'</div>'+
+  '<div class="card" style="grid-column:1/-1"><h2><span class="dot" style="background:var(--dot-pink)"></span>pedidos</h2><p class="hint">cada set com seu orçamento, ideias e pagamentos</p>'+
+    (c.pedidos.length?c.pedidos.map(function(p){var x=calc(p);return '<div class="prow" data-pid="'+p.id+'"><div><b style="font-size:.9rem">'+esc(p.nome||'sem nome')+'</b><br><span class="badge" style="background:'+STATUS[p.status]+'">'+esc(p.status)+'</span></div><div style="text-align:right;font-size:.8rem">'+brl(x.total)+'<br><span class="muted">falta '+brl(x.saldo)+'</span></div></div>'}).join(''):'<p class="muted">nenhum pedido ainda</p>')+
+    '<button class="pill solid sm" id="addp" style="margin-top:6px">+ novo pedido</button></div>'+
+  '<div class="card"><h2><span class="dot" style="background:var(--dot-blue)"></span>medidas</h2><p class="hint">a cliente também vê</p><textarea data-k="medidas">'+esc(c.medidas)+'</textarea></div>'+
+  '<div class="card"><h2><span class="dot" style="background:var(--dot-gold)"></span>observações internas</h2><p class="hint">a cliente não vê</p><textarea data-k="obs">'+esc(c.obs)+'</textarea></div></div>';
+  bind(c);
+  $('volta').onclick=lista;
+  $('del').onclick=function(){if(confirm('excluir esta cliente e todos os pedidos?')){D=D.filter(function(x){return x!==c});save();lista()}};
   $('clink').onclick=function(){navigator.clipboard.writeText(link).then(function(){$('clink').textContent='copiado ✓';setTimeout(function(){$('clink').textContent='copiar link'},1500)})};
   $('ac').onchange=function(){c.acesso=$('ac').checked;save()};
-  $('volta').onclick=function(){lista()};
-  $('del').onclick=function(){if(confirm('excluir esta cliente?')){D=D.filter(function(x){return x!==c});save();lista()}};
-  $('addi').onclick=function(){c.itens.push({d:'',v:''});save();linhas()};
-  $('addp').onclick=function(){c.pagos.push({data:new Date().toISOString().slice(0,10),forma:'pix',v:''});save();linhas()};
-  $('resumo').onclick=function(){var t=calc(c);var s='olá, '+c.nome+'! resumo do seu pedido biyou nails:\n\n'+
-    c.itens.map(function(i){return '• '+i.d+': '+brl(num(i.v))}).join('\n')+(t.desc?'\n\ndesconto pix: −'+brl(t.desc):'')+(num(c.frete)?'\nfrete: '+brl(num(c.frete)):'')+
-    '\ntotal: '+brl(t.total)+'\npago: '+brl(t.pago)+'\nfalta: '+brl(t.saldo)+(c.entrega?'\nentrega prevista: '+c.entrega.split('-').reverse().join('/'):'');
+  $('addp').onclick=function(){var p=pNovo();c.pedidos.push(p);save();pedido(p.id)};
+  [].forEach.call(document.querySelectorAll('.prow'),function(el){el.onclick=function(){pedido(el.dataset.pid)}});
+}
+
+/* ---------- pedido ---------- */
+function pedido(pid){
+  var c=cur;curP=c.pedidos.filter(function(x){return x.id===pid})[0];if(!curP)return perfil(c.id);var p=curP;
+  var opts=Object.keys(STATUS).map(function(s){return '<option'+(s===p.status?' selected':'')+'>'+s+'</option>'}).join('');
+  $('clientes').innerHTML=
+  '<div class="top"><button class="pill sm" id="volta">← '+esc(c.nome||'cliente')+'</button><div style="display:flex;gap:8px"><button class="pill sm" id="resumo">copiar resumo</button><button class="pill sm" id="del">excluir pedido</button></div></div><div class="grid">'+
+  '<div class="card"><h2><span class="dot" style="background:var(--dot-lilac)"></span>pedido</h2><p class="hint">ex: set perolinha</p>'+
+    '<div class="f"><label>nome do pedido</label><input data-k="nome" value="'+esc(p.nome)+'"></div><div class="grid" style="gap:12px"><div class="f"><label>status</label><select data-k="status">'+opts+'</select></div>'+
+    '<div class="f"><label>entrega prevista</label><input type="date" data-k="entrega" value="'+esc(p.entrega)+'"></div></div></div>'+
+  '<div class="card"><h2><span class="dot" style="background:var(--dot-green)"></span>resumo financeiro</h2><p class="hint">pix com 5% de desconto · entrada de 40%</p><div id="tot"></div></div>'+
+  '<div class="card"><h2><span class="dot" style="background:var(--dot-pink)"></span>orçamento</h2><p class="hint">itens do pedido</p><div id="itens"></div><button class="pill sm" id="addi">+ item</button>'+
+    '<div class="grid" style="gap:12px;margin-top:14px"><div class="f"><label>frete (R$)</label><input data-k="frete" value="'+esc(p.frete)+'" inputmode="decimal"></div>'+
+    '<div class="f"><label>pagamento</label><select data-k="pix"><option value="1"'+(p.pix?' selected':'')+'>pix (−5%)</option><option value="0"'+(p.pix?'':' selected')+'>cartão</option></select></div></div></div>'+
+  '<div class="card"><h2><span class="dot" style="background:var(--dot-peach)"></span>pagamentos</h2><p class="hint">valores já recebidos</p><div id="pagos"></div><button class="pill sm" id="addpg">+ pagamento</button></div>'+
+  '<div class="card" style="grid-column:1/-1"><h2><span class="dot" style="background:var(--dot-blue)"></span>ideias e referências</h2><p class="hint">cores, charms, formato, links do pinterest…</p>'+
+    '<div class="grid"><div class="f"><label>ideias</label><textarea data-k="ideias">'+esc(p.ideias)+'</textarea></div><div class="f"><label>links de referência (um por linha)</label><textarea data-k="links">'+esc(p.links)+'</textarea></div></div><div id="lk"></div></div></div>';
+  bind(p,function(k){totais();if(k==='links')links()});
+  $('volta').onclick=function(){perfil(c.id)};
+  $('del').onclick=function(){if(confirm('excluir este pedido?')){c.pedidos=c.pedidos.filter(function(x){return x!==p});save();perfil(c.id)}};
+  $('addi').onclick=function(){p.itens.push({d:'',v:''});save();linhas()};
+  $('addpg').onclick=function(){p.pagos.push({data:new Date().toISOString().slice(0,10),forma:'pix',v:''});save();linhas()};
+  $('resumo').onclick=function(){var t=calc(p);var s='olá, '+c.nome+'! resumo do pedido '+p.nome+':\n\n'+p.itens.map(function(i){return '• '+i.d+': '+brl(num(i.v))}).join('\n')+(t.desc?'\n\ndesconto pix: −'+brl(t.desc):'')+(num(p.frete)?'\nfrete: '+brl(num(p.frete)):'')+
+    '\ntotal: '+brl(t.total)+'\npago: '+brl(t.pago)+'\nfalta: '+brl(t.saldo)+(p.entrega?'\nentrega prevista: '+p.entrega.split('-').reverse().join('/'):'');
     navigator.clipboard.writeText(s).then(function(){$('resumo').textContent='copiado ✓';setTimeout(function(){$('resumo').textContent='copiar resumo'},1500)})};
   linhas();totais();links();
 }
 function linhas(){
-  var c=cur;
-  $('itens').innerHTML=c.itens.map(function(i,n){return '<div class="line"><input data-i="'+n+'" data-f="d" placeholder="ex: set curto francesinha com charms" value="'+esc(i.d)+'"><input data-i="'+n+'" data-f="v" placeholder="R$" inputmode="decimal" value="'+esc(i.v)+'"><button class="x" data-rm="i'+n+'">✕</button></div>'}).join('');
-  $('pagos').innerHTML=c.pagos.length?c.pagos.map(function(p,n){return '<div class="line pay"><input type="date" data-p="'+n+'" data-f="data" value="'+esc(p.data)+'"><input data-p="'+n+'" data-f="forma" placeholder="forma" value="'+esc(p.forma)+'"><input data-p="'+n+'" data-f="v" placeholder="R$" inputmode="decimal" value="'+esc(p.v)+'"><button class="x" data-rm="p'+n+'">✕</button></div>'}).join(''):'<p class="muted">nenhum pagamento ainda</p>';
-  [].forEach.call(document.querySelectorAll('[data-i],[data-p]'),function(el){el.oninput=function(){
-    (el.dataset.i!=null?cur.itens[el.dataset.i]:cur.pagos[el.dataset.p])[el.dataset.f]=el.value;save();totais()}});
-  [].forEach.call(document.querySelectorAll('[data-rm]'),function(b){b.onclick=function(){var r=b.dataset.rm;(r[0]==='i'?cur.itens:cur.pagos).splice(+r.slice(1),1);save();linhas();totais()}});
+  var p=curP;
+  $('itens').innerHTML=p.itens.map(function(i,n){return '<div class="line"><input data-i="'+n+'" data-f="d" placeholder="ex: set curto francesinha com charms" value="'+esc(i.d)+'"><input data-i="'+n+'" data-f="v" placeholder="R$" inputmode="decimal" value="'+esc(i.v)+'"><button class="x" data-rm="i'+n+'">✕</button></div>'}).join('');
+  $('pagos').innerHTML=p.pagos.length?p.pagos.map(function(x,n){return '<div class="line pay"><input type="date" data-p="'+n+'" data-f="data" value="'+esc(x.data)+'"><input data-p="'+n+'" data-f="forma" placeholder="forma" value="'+esc(x.forma)+'"><input data-p="'+n+'" data-f="v" placeholder="R$" inputmode="decimal" value="'+esc(x.v)+'"><button class="x" data-rm="p'+n+'">✕</button></div>'}).join(''):'<p class="muted">nenhum pagamento ainda</p>';
+  [].forEach.call(document.querySelectorAll('[data-i],[data-p]'),function(el){el.oninput=function(){(el.dataset.i!=null?p.itens[el.dataset.i]:p.pagos[el.dataset.p])[el.dataset.f]=el.value;save();totais()}});
+  [].forEach.call(document.querySelectorAll('[data-rm]'),function(b){b.onclick=function(){var r=b.dataset.rm;(r[0]==='i'?p.itens:p.pagos).splice(+r.slice(1),1);save();linhas();totais()}});
 }
 function totais(){
-  var t=calc(cur);
-  $('tot').innerHTML='<div class="sum"><span>subtotal</span><span>'+brl(t.sub)+'</span></div>'+
-  (t.desc?'<div class="sum"><span>desconto pix</span><span>−'+brl(t.desc)+'</span></div>':'')+
-  '<div class="sum"><span>frete</span><span>'+brl(num(cur.frete))+'</span></div>'+
-  '<div class="sum big"><span>total</span><span>'+brl(t.total)+'</span></div>'+
-  '<div class="sum"><span>entrada sugerida (40%)</span><span>'+brl(t.entrada)+'</span></div>'+
-  '<div class="sum"><span>já pago</span><span>'+brl(t.pago)+'</span></div>'+
+  var t=calc(curP);
+  $('tot').innerHTML='<div class="sum"><span>subtotal</span><span>'+brl(t.sub)+'</span></div>'+(t.desc?'<div class="sum"><span>desconto pix</span><span>−'+brl(t.desc)+'</span></div>':'')+
+  '<div class="sum"><span>frete</span><span>'+brl(num(curP.frete))+'</span></div><div class="sum big"><span>total</span><span>'+brl(t.total)+'</span></div>'+
+  '<div class="sum"><span>entrada sugerida (40%)</span><span>'+brl(t.entrada)+'</span></div><div class="sum"><span>já pago</span><span>'+brl(t.pago)+'</span></div>'+
   '<div class="sum big"><span>falta pagar</span><span style="color:'+(t.saldo>0.009?'var(--dot-pink)':'oklch(60% .12 150)')+'">'+brl(t.saldo)+'</span></div>';
 }
 function links(){
-  $('lk').innerHTML=(cur.links||'').split('\n').filter(function(l){return /^https?:\/\//.test(l.trim())}).map(function(l){
+  $('lk').innerHTML=(curP.links||'').split('\n').filter(function(l){return /^https?:\/\//.test(l.trim())}).map(function(l){
     return '<a class="pill sm" style="text-decoration:none;display:inline-block;margin:0 6px 6px 0" target="_blank" rel="noopener noreferrer" href="'+esc(l.trim())+'">abrir link ↗</a>'}).join('');
 }
 
@@ -231,7 +246,7 @@ function metricas(){
 
 /* ---------- abas ---------- */
 function init(){
-  load().then(lista);
+  load().then(function(){D=D.map(norm);save();lista()});
   [].forEach.call(document.querySelectorAll('.tabs .pill'),function(b){b.onclick=function(){
     [].forEach.call(document.querySelectorAll('.tabs .pill'),function(x){x.classList.toggle('on',x===b)});
     $('clientes').classList.toggle('hide',b.dataset.t!=='clientes');$('metricas').classList.toggle('hide',b.dataset.t!=='metricas');
