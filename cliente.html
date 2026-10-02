@@ -37,6 +37,9 @@ a.pill{display:inline-block;text-decoration:none;color:var(--foreground);border:
 .b{border:none;background:var(--secondary);color:var(--foreground);width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:.9rem}
 .b.p{background:var(--primary);color:#fff;width:46px;height:46px}
 input[type=range]{width:100%;accent-color:var(--primary);margin-top:12px}
+details.card summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px}details.card summary::-webkit-details-marker{display:none}
+.tag{font-size:.68rem;padding:3px 12px;border-radius:99px;background:linear-gradient(120deg,var(--accent),var(--primary));color:#fff}
+h3{font-family:Georgia,serif;font-weight:400;font-size:.95rem;margin:20px 0 6px;color:var(--muted-foreground)}
 .msg{text-align:center;color:var(--muted-foreground);padding:80px 0}
 </style>
 </head>
@@ -56,24 +59,25 @@ var t=new URLSearchParams(location.search).get('t')||'';
 fetch('/api/cliente?t='+encodeURIComponent(t)).then(function(r){if(!r.ok)throw 0;return r.json()}).then(draw)
 .catch(function(){$('main').innerHTML='<p class="msg">este link não está disponível.<br>fale com a biyou no instagram 💜</p>'});
 
+function calcP(p){var sub=p.itens.reduce(function(a,i){return a+num(i.v)},0),desc=p.pix?sub*.05:0,total=sub-desc+num(p.frete),pago=p.pagos.reduce(function(a,x){return a+num(x.v)},0);return {desc:desc,total:total,pago:pago,falta:total-pago}}
+function ped(p,open){
+  var t=calcP(p),idx=Math.max(0,ETAPAS.indexOf(p.status)),lk=(p.links||'').split('\n').map(function(l){return l.trim()}).filter(function(l){return /^https?:\/\//.test(l)});
+  return '<details class="card"'+(open?' open':'')+'><summary><span style="font-family:Georgia,serif;font-size:1.05rem">'+esc(p.nome||'pedido')+'</span><span class="tag">'+esc(p.status)+'</span></summary>'+
+  '<div class="steps" style="margin:18px 0 6px">'+ETAPAS.map(function(e,n){return '<div class="st'+(n<=idx?' on':'')+'"><i></i>'+e+'</div>'}).join('')+'</div>'+
+  (p.entrega?'<p class="txt">entrega prevista: <b style="color:var(--foreground)">'+esc(p.entrega.split('-').reverse().join('/'))+'</b></p>':'')+
+  '<h3>orçamento</h3>'+p.itens.filter(function(i){return i.d||i.v}).map(function(i){return '<div class="sum"><span>'+esc(i.d)+'</span><span>'+brl(num(i.v))+'</span></div>'}).join('')+
+  (t.desc?'<div class="sum"><span>desconto pix (5%)</span><span>−'+brl(t.desc)+'</span></div>':'')+(num(p.frete)?'<div class="sum"><span>frete</span><span>'+brl(num(p.frete))+'</span></div>':'')+
+  '<div class="sum big"><span>total</span><span>'+brl(t.total)+'</span></div>'+
+  '<h3>pagamentos</h3>'+(p.pagos.length?p.pagos.map(function(x){return '<div class="sum"><span>'+esc((x.data||'').split('-').reverse().join('/'))+' · '+esc(x.forma)+'</span><span>'+brl(num(x.v))+'</span></div>'}).join(''):'<p class="txt">nenhum pagamento registrado ainda</p>')+
+  '<div class="sum big"><span>falta pagar</span><span>'+(t.falta>.009?brl(t.falta):'tudo certo ✓')+'</span></div>'+
+  ((p.ideias||lk.length)?'<h3>ideias e referências</h3>'+(p.ideias?'<p class="txt">'+esc(p.ideias)+'</p>':'')+lk.map(function(l){return '<a class="pill" target="_blank" rel="noopener noreferrer" href="'+esc(l)+'">abrir referência ↗</a>'}).join(''):'')+'</details>';
+}
 function draw(c){
-  var sub=c.itens.reduce(function(a,i){return a+num(i.v)},0),desc=c.pix?sub*.05:0,total=sub-desc+num(c.frete);
-  var pago=c.pagos.reduce(function(a,p){return a+num(p.v)},0),falta=total-pago,idx=Math.max(0,ETAPAS.indexOf(c.status));
-  var h='<h1>olá, <span>'+esc((c.nome||'').split(' ')[0])+'</span>!</h1><p class="sub">aqui você acompanha o seu pedido</p>'+
-  '<div class="card"><h2><span class="dot" style="background:var(--dot-lilac)"></span>andamento</h2><div class="steps">'+
-  ETAPAS.map(function(e,n){return '<div class="st'+(n<=idx?' on':'')+'"><i></i>'+e+'</div>'}).join('')+'</div>'+
-  (c.entrega?'<p class="txt" style="margin-top:14px">entrega prevista: <b style="color:var(--foreground)">'+esc(c.entrega.split('-').reverse().join('/'))+'</b></p>':'')+'</div>'+
-  '<div class="card"><h2><span class="dot" style="background:var(--dot-pink)"></span>orçamento</h2>'+
-  c.itens.filter(function(i){return i.d||i.v}).map(function(i){return '<div class="sum"><span>'+esc(i.d)+'</span><span>'+brl(num(i.v))+'</span></div>'}).join('')+
-  (desc?'<div class="sum"><span>desconto pix (5%)</span><span>−'+brl(desc)+'</span></div>':'')+
-  (num(c.frete)?'<div class="sum"><span>frete</span><span>'+brl(num(c.frete))+'</span></div>':'')+
-  '<div class="sum big"><span>total</span><span>'+brl(total)+'</span></div></div>'+
-  '<div class="card"><h2><span class="dot" style="background:var(--dot-green)"></span>pagamentos</h2>'+
-  (c.pagos.length?c.pagos.map(function(p){return '<div class="sum"><span>'+esc((p.data||'').split('-').reverse().join('/'))+' · '+esc(p.forma)+'</span><span>'+brl(num(p.v))+'</span></div>'}).join(''):'<p class="txt">nenhum pagamento registrado ainda</p>')+
-  '<div class="sum big"><span>falta pagar</span><span>'+(falta>.009?brl(falta):'tudo certo ✓')+'</span></div></div>';
-  var lk=(c.links||'').split('\n').map(function(l){return l.trim()}).filter(function(l){return /^https?:\/\//.test(l)});
-  if(c.ideias||lk.length)h+='<div class="card"><h2><span class="dot" style="background:var(--dot-blue)"></span>ideias e referências</h2>'+
-    (c.ideias?'<p class="txt">'+esc(c.ideias)+'</p>':'')+lk.map(function(l){return '<a class="pill" target="_blank" rel="noopener noreferrer" href="'+esc(l)+'">abrir referência ↗</a>'}).join('')+'</div>';
+  var ps=c.pedidos||[],g=ps.reduce(function(a,p){var t=calcP(p);a.total+=t.total;a.pago+=t.pago;a.falta+=t.falta;return a},{total:0,pago:0,falta:0});
+  var h='<h1>olá, <span>'+esc((c.nome||'').split(' ')[0])+'</span>!</h1><p class="sub">aqui você acompanha os seus pedidos</p>';
+  if(ps.length>1)h+='<div class="card"><h2><span class="dot" style="background:var(--dot-green)"></span>resumo geral</h2><div class="sum"><span>total dos pedidos</span><span>'+brl(g.total)+'</span></div><div class="sum"><span>já pago</span><span>'+brl(g.pago)+'</span></div><div class="sum big"><span>falta pagar</span><span>'+(g.falta>.009?brl(g.falta):'tudo certo ✓')+'</span></div></div>';
+  h+=ps.length?ps.map(function(p){return ped(p,ps.length===1)}).join(''):'<div class="card"><p class="txt" style="margin:0">seus pedidos vão aparecer aqui 💜</p></div>';
+  if(c.medidas)h+='<details class="card"><summary><span style="font-family:Georgia,serif;font-size:1.05rem">minhas medidas</span></summary><p class="txt" style="margin-top:14px">'+esc(c.medidas)+'</p></details>';
   h+='<div class="card"><h2><span class="dot" style="background:var(--dot-peach)"></span>nossa playlist</h2><div class="pl"><div id="orb" class="orb"></div>'+
   '<div class="t"><small>tocando agora</small><span id="tt">carregando…</span></div>'+
   '<button class="b" id="pv" aria-label="anterior">⏮</button><button class="b p" id="pp" aria-label="tocar">▶</button><button class="b" id="nx" aria-label="próxima">⏭</button></div>'+
