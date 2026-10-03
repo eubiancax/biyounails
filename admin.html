@@ -118,7 +118,8 @@ function save(){
 /* ---------- cálculo ---------- */
 var curP=null;
 function tk(){var a=new Uint8Array(16);crypto.getRandomValues(a);return Array.prototype.map.call(a,function(b){return ('0'+b.toString(16)).slice(-2)}).join('')}
-function pNovo(){return {id:tk().slice(0,8),nome:'',status:'orçamento',valor:'',pgto:'pix_sinal',entregaForma:'',frete:'',freteServico:'',juros:'',entregues:[],envio:{cpf:'',cep:'',rua:'',numero:'',compl:'',bairro:'',cidade:'',uf:'',alt:'',larg:'',comp:'',peso:''},entrega:'',ideias:'',refs:[],entregues:[],ent:{pago:false,data:''},fim:{pago:false,data:''}}}
+function hoje(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
+function pNovo(){return {id:tk().slice(0,8),nome:'',status:'orçamento',dataPedido:hoje(),dataEnvio:'',valor:'',pgto:'pix_sinal',entregaForma:'',frete:'',freteServico:'',juros:'',entregues:[],envio:{cpf:'',cep:'',rua:'',numero:'',compl:'',bairro:'',cidade:'',uf:'',alt:'',larg:'',comp:'',peso:''},entrega:'',ideias:'',refs:[],entregues:[],ent:{pago:false,data:''},fim:{pago:false,data:''}}}
 function calc(p){var v=num(p.valor),fr=num(p.frete),m=p.pgto,ct=m==='cartao',tot=m==='pix_total',j=ct?num(p.juros)/100:0,base=tot?v*0.95:v,
   ent=tot?base:base*0.4*(1+j),fim=tot?fr:(base*0.6+fr)*(1+j),total=ent+fim,pago=(p.ent.pago?ent:0)+(p.fim.pago?fim:0);
   return {valor:v,desc:tot?v-base:0,jp:ct?num(p.juros):0,juros:total-(base+fr),base:base,frete:fr,ent:ent,fim:fim,total:total,pago:pago,saldo:total-pago,tot:tot}}
@@ -127,7 +128,7 @@ function normP(p){
   var b=pNovo(),v=p.valor;
   if(v==null&&Array.isArray(p.itens))v=p.itens.reduce(function(a,i){return a+num(i.v)},0)||'';
   var o={id:String(p.id||b.id),nome:p.nome||p.name||'',status:STATUS[p.status]?p.status:'orçamento',valor:v==null?'':v,pgto:mapPg(p),
-    entregaForma:p.entregaForma||'',frete:p.frete||'',freteServico:p.freteServico||'',juros:p.juros||'',envio:Object.assign(pNovo().envio,p.envio||{}),entrega:p.entrega||'',ideias:[p.ideias,Array.isArray(p.links)?p.links.join(' '):p.links].filter(Boolean).join('\n'),
+    entregaForma:p.entregaForma||'',frete:p.frete||'',freteServico:p.freteServico||'',juros:p.juros||'',envio:Object.assign(pNovo().envio,p.envio||{}),entrega:p.entrega||'',dataPedido:p.dataPedido||'',dataEnvio:p.dataEnvio||'',ideias:[p.ideias,Array.isArray(p.links)?p.links.join(' '):p.links].filter(Boolean).join('\n'),
     refs:Array.isArray(p.refs)?p.refs.filter(function(x){return /^[a-f0-9]{24}$/.test(x)}):[],
     entregues:Array.isArray(p.entregues)?p.entregues.filter(function(x){return /^[a-f0-9]{24}$/.test(x)}):[],
     ent:{pago:!!(p.ent&&p.ent.pago),data:(p.ent&&p.ent.data)||''},fim:{pago:!!(p.fim&&p.fim.pago),data:(p.fim&&p.fim.data)||''}};
@@ -182,7 +183,7 @@ function perfil(id){
     (wa?'<a class="pill sm" style="text-decoration:none;display:inline-block" target="_blank" rel="noopener noreferrer" href="'+wa+'">abrir whatsapp ↗</a>':'')+'</div>'+
   '<div class="card"><h2><span class="dot" style="background:var(--dot-blue)"></span>medidas</h2><p class="hint">a cliente também vê</p><textarea data-k="medidas" style="min-height:190px">'+esc(c.medidas)+'</textarea></div>'+
   '<div class="card" style="grid-column:1/-1"><h2><span class="dot" style="background:var(--dot-pink)"></span>pedidos</h2><p class="hint">cada set com valor, entrega e referências</p>'+
-    (c.pedidos.length?c.pedidos.map(function(p){var x=calc(p);return '<div class="prow" data-pid="'+p.id+'"><div><b style="font-size:.9rem">'+esc(p.nome||'sem nome')+'</b><br><span class="badge" style="background:'+STATUS[p.status]+'">'+esc(p.status)+'</span></div><div style="text-align:right;font-size:.8rem">'+brl(x.total)+'<br><span class="muted">falta '+brl(x.saldo)+'</span></div></div>'}).join(''):'<p class="muted">nenhum pedido ainda</p>')+
+    (c.pedidos.length?c.pedidos.map(function(p){var x=calc(p);return '<div class="prow" data-pid="'+p.id+'"><div><b style="font-size:.9rem">'+esc(p.nome||'sem nome')+'</b><br><span class="badge" style="background:'+STATUS[p.status]+'">'+esc(p.status)+'</span>'+(p.dataPedido?' <span class="muted">'+p.dataPedido.split('-').reverse().join('/')+'</span>':'')+'</div><div style="text-align:right;font-size:.8rem">'+brl(x.total)+'<br><span class="muted">falta '+brl(x.saldo)+'</span></div></div>'}).join(''):'<p class="muted">nenhum pedido ainda</p>')+
     '<button class="pill solid sm" id="addp" style="margin-top:6px">+ novo pedido</button></div>'+
   '<div class="card"><h2><span class="dot" style="background:var(--dot-green)"></span>resumo geral</h2><p class="hint">soma de todos os pedidos</p>'+sumRows(t)+'</div>'+
   '<div class="card"><h2><span class="dot" style="background:var(--dot-gold)"></span>acesso da cliente</h2><p class="hint">ela vê os pedidos por este link</p>'+
@@ -204,15 +205,17 @@ function pedido(pid){
   var c=cur;curP=c.pedidos.filter(function(x){return x.id===pid})[0];if(!curP)return perfil(c.id);var p=curP;
   var opts=Object.keys(STATUS).map(function(x){return '<option'+(x===p.status?' selected':'')+'>'+x+'</option>'}).join('');
   $('clientes').innerHTML=
-  '<div class="top"><button class="pill sm" id="volta">← '+esc(c.nome||'cliente')+'</button><div style="display:flex;gap:8px"><button class="pill sm" id="resumo">copiar resumo</button><button class="pill sm" id="del">excluir pedido</button></div></div><div class="grid">'+
+  '<div class="top"><button class="pill sm" id="volta">← '+esc(c.nome||'cliente')+'</button><div style="display:flex;gap:8px"><button class="pill sm" id="pdf">comprovante (PDF)</button><button class="pill sm" id="resumo">copiar resumo</button><button class="pill sm" id="del">excluir pedido</button></div></div><div class="grid">'+
   '<div class="card"><h2><span class="dot" style="background:var(--dot-lilac)"></span>pedido</h2><p class="hint">ex: set perolinha</p>'+
     '<div class="f"><label>nome do set</label><input data-k="nome" value="'+esc(p.nome)+'"></div><div class="grid" style="gap:12px"><div class="f"><label>status</label><select data-k="status">'+opts+'</select></div>'+
-    '<div class="f"><label>entrega prevista</label><input type="date" data-k="entrega" value="'+esc(p.entrega)+'"></div></div></div>'+
+    '<div class="f"><label>entrega prevista</label><input type="date" data-k="entrega" value="'+esc(p.entrega)+'"></div></div>'+
+    '<div class="grid" style="gap:12px"><div class="f"><label>data do pedido</label><input type="date" data-k="dataPedido" value="'+esc(p.dataPedido)+'"></div>'+
+    '<div class="f"><label>enviado / entregue em</label><input type="date" data-k="dataEnvio" value="'+esc(p.dataEnvio)+'"></div></div></div>'+
   '<div class="card"><h2><span class="dot" style="background:var(--dot-peach)"></span>valor, pagamento e entrega</h2><p class="hint">sinal de 40% + restante e frete · ou pix à vista com 5% de desconto</p>'+
     '<div class="grid" style="gap:12px"><div class="f"><label>valor do set (R$)</label><input data-k="valor" inputmode="decimal" value="'+esc(p.valor)+'"></div>'+
     '<div class="f"><label>forma de pagamento</label><select data-k="pgto"><option value="pix_sinal"'+(p.pgto==='pix_sinal'?' selected':'')+'>pix com sinal: 40% + restante e frete (sem desconto)</option><option value="pix_total"'+(p.pgto==='pix_total'?' selected':'')+'>pix à vista: valor total (5% de desconto)</option><option value="cartao"'+(p.pgto==='cartao'?' selected':'')+'>cartão de crédito (juros do banco)</option></select></div>'+
     '<div class="f'+(p.pgto==='cartao'?'':' hide')+'" id="jf"><label>juros do cartão (%)</label><input data-k="juros" inputmode="decimal" placeholder="ex: 12,5" value="'+esc(p.juros)+'"></div>'+
-    '<div class="f"><label>forma de entrega</label><input data-k="entregaForma" list="fe" value="'+esc(p.entregaForma)+'"><datalist id="fe"><option>retirada</option><option>correios</option><option>motoboy</option><option>uber</option></datalist></div>'+
+    '<div class="f"><label>forma de entrega</label><select data-k="entregaForma">'+feOpts(p.entregaForma)+'</select></div>'+
     '<div class="f"><label>frete (R$)</label><input data-k="frete" inputmode="decimal" value="'+esc(p.frete)+'"></div></div></div>'+
   envioHtml(p)+'<div class="card"><h2><span class="dot" style="background:var(--dot-green)"></span>resumo financeiro</h2><p class="hint">marque quando receber cada parte</p><div id="tot"></div></div>'+
   '<div class="card"><h2><span class="dot" style="background:var(--dot-blue)"></span>referências</h2><p class="hint">fotos e ideias que a cliente mandou</p>'+
@@ -223,13 +226,14 @@ function pedido(pid){
   envioInit();
   $('volta').onclick=function(){perfil(c.id)};
   $('del').onclick=function(){if(confirm('excluir este pedido?')){p.refs.concat(p.entregues).forEach(delImg);c.pedidos=c.pedidos.filter(function(x){return x!==p});save();perfil(c.id)}};
+  $('pdf').onclick=comprovante;
   $('upb').onclick=function(){$('upf').click()};
   $('upf').onchange=function(){if(this.files.length)subir(this.files,'refs','upb','refs')};
   $('upb2').onclick=function(){$('upf2').click()};
   $('upf2').onchange=function(){if(this.files.length)subir(this.files,'entregues','upb2','entregues')};
   $('resumo').onclick=function(){var t=calc(p),dd=function(x){return x.split('-').reverse().join('/')};
     var s='olá, '+c.nome+'! resumo do pedido '+p.nome+':\n\nvalor do set: '+brl(t.valor)+(t.desc?'\ndesconto pix (5%): −'+brl(t.desc):'')+'\n'+(t.tot?'valor total à vista (pix)':'40% na confirmação (sinal)')+': '+brl(t.ent)+(t.fim>0.004?'\n'+(t.tot?'frete':'restante'+(t.frete?' + frete':''))+' na finalização: '+brl(t.fim):'')+
-      (t.juros>0.009?'\njuros do cartão ('+t.jp+'%): '+brl(t.juros):'')+'\ntotal: '+brl(t.total)+(p.entregaForma?'\nentrega: '+p.entregaForma:'')+(p.entrega?' · prevista '+dd(p.entrega):'');
+      (t.juros>0.009?'\njuros do cartão ('+t.jp+'%): '+brl(t.juros):'')+'\ntotal: '+brl(t.total)+(p.entregaForma?'\nentrega: '+p.entregaForma:'')+(p.entrega?' · prevista '+dd(p.entrega):'')+(p.dataEnvio?'\nenviado/entregue em '+dd(p.dataEnvio):'');
     navigator.clipboard.writeText(s).then(function(){$('resumo').textContent='copiado ✓';setTimeout(function(){$('resumo').textContent='copiar resumo'},1500)})};
   totais();refsDraw();
 }
@@ -240,13 +244,15 @@ function totais(){
   line('c1',t.tot?'valor total à vista (pix)':'40% na confirmação (sinal)',t.ent,p.ent.pago)+(t.fim>0.004?line('c2',t.tot?'frete na finalização':'restante'+(t.frete?' + frete':'')+' na finalização',t.fim,p.fim.pago):'')+
   '<div class="sum big"><span>falta pagar</span><span style="color:'+(t.saldo>0.009?'var(--dot-pink)':'oklch(60% .12 150)')+'">'+brl(t.saldo)+'</span></div>'+
   '';
-  var hoje=new Date().toISOString().slice(0,10);
-  $('c1').onchange=function(){p.ent={pago:this.checked,data:this.checked?hoje:''};save();totais()};
-  if($('c2'))$('c2').onchange=function(){p.fim={pago:this.checked,data:this.checked?hoje:''};save();totais()};
+  var hj=hoje();
+  $('c1').onchange=function(){p.ent={pago:this.checked,data:this.checked?hj:''};save();totais()};
+  if($('c2'))$('c2').onchange=function(){p.fim={pago:this.checked,data:this.checked?hj:''};save();totais()};
 }
 
 /* ---------- envio (Melhor Envio) ---------- */
-function envioVis(p){var f=(p.entregaForma||'').trim().toLowerCase();return !!f&&!/retirad/.test(f)}
+var FE=['em mãos','retirada','correios','motoboy','uber'];
+function feOpts(cur){cur=cur||'';var l=FE.slice();if(cur&&l.indexOf(cur)<0)l.push(cur);return '<option value="">escolha…</option>'+l.map(function(x){return '<option'+(x===cur?' selected':'')+'>'+esc(x)+'</option>'}).join('')}
+function envioVis(p){var f=(p.entregaForma||'').trim().toLowerCase();return !!f&&!/retirad|m[aã]os/.test(f)}
 function envioHtml(p){
   var f=function(k,l,m){return '<div class="f"><label>'+l+'</label><input data-e="'+k+'" '+(m||'')+' value="'+esc(p.envio[k])+'"></div>'};
   return '<div class="card'+(envioVis(p)?'':' hide')+'" id="envio" style="grid-column:1/-1"><h2><span class="dot" style="background:var(--dot-blue)"></span>dados de envio</h2><p class="hint">preencha, calcule o frete (melhor envio e superfrete) e escolha o serviço · só você vê estes dados</p>'+
@@ -277,6 +283,42 @@ function envioInit(){
   $('cpenv').onclick=function(){var s='destinatário: '+c.nome+'\ncpf: '+e.cpf+'\ntelefone: '+c.tel+'\nendereço: '+e.rua+', '+e.numero+(e.compl?' - '+e.compl:'')+'\nbairro: '+e.bairro+'\ncidade: '+e.cidade+'/'+e.uf+'\ncep: '+e.cep+
     '\npacote: '+e.alt+' x '+e.larg+' x '+e.comp+' cm · '+e.peso+' g\nvalor declarado: '+brl(n(p.valor))+(p.freteServico?'\nserviço: '+p.freteServico:'');
     navigator.clipboard.writeText(s).then(function(){$('cpenv').textContent='copiado ✓';setTimeout(function(){$('cpenv').textContent='copiar dados de envio'},1500)})};
+}
+
+/* ---------- comprovante de pagamento + agradecimento (PDF) ---------- */
+function comprovante(){
+  var c=cur,p=curP,t=calc(p),O=location.origin,fd=function(d){return d?d.split('-').reverse().join('/'):''},hoje=new Date().toLocaleDateString('pt-BR'),
+    nome=(c.nome||'').trim().split(' ')[0]||'cliente',ok=t.saldo<=0.009&&t.total>0,
+    modo={pix_total:'pix à vista · valor total com 5% de desconto',pix_sinal:'pix · sinal de 40% + restante e frete',cartao:'cartão de crédito'+(t.jp?' · juros de '+t.jp+'%':'')}[p.pgto]||'',
+    L=function(l,v,b){return '<div class="l'+(b?' b':'')+'"><span>'+l+'</span><span>'+v+'</span></div>'},
+    R=function(l,v,pg,d){return '<div class="r"><div><b>'+l+'</b><small>'+brl(v)+'</small></div><span class="st'+(pg?' ok':'')+'">'+(pg?'pago'+(d?' em '+fd(d):''):'pendente')+'</span></div>'};
+  var h='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>comprovante - '+esc(p.nome||'pedido')+' - '+esc(c.nome)+'</title><style>'+
+  "@font-face{font-family:Fogthree;src:url('"+O+"/fonts/fogthree.woff') format('woff')}"+
+  '@page{size:A4;margin:0}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}html,body{margin:0}'+
+  "body{font-family:'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#4A4E57;background:#fff}"+
+  '.pg{width:210mm;min-height:296mm;padding:9mm 18mm;margin:0 auto;background:linear-gradient(180deg,#eaf6fc 0,#fdf7fb 38%,#fff 70%)}'+
+  '.logo{display:block;height:17mm;margin:0 auto 4mm}.ey{text-align:center;font-size:9pt;letter-spacing:.35em;text-transform:uppercase;color:#8d8a99;margin:0}'+
+  "h1{font-family:Fogthree,Georgia,serif;font-weight:400;font-size:30pt;text-align:center;margin:3mm 0 1mm;color:#4A4E57}h1 i{font-style:normal;color:#f08fbd}"+
+  '.sub{text-align:center;color:#8d8a99;font-size:11pt;margin:0 0 6mm}.box{background:#fff;border:1px solid #efe4f6;border-radius:6mm;padding:4.5mm 7mm;margin-bottom:3.5mm;box-shadow:0 2mm 6mm -3mm rgba(150,110,190,.25)}'+
+  "h2{font-family:Fogthree,Georgia,serif;font-weight:400;font-size:14pt;margin:0 0 3mm}.l{display:flex;justify-content:space-between;font-size:10.5pt;padding:1.6mm 0}.l.b{border-top:1px solid #efe4f6;margin-top:1.5mm;padding-top:3mm;font-weight:700;font-size:12pt}"+
+  '.r{display:flex;justify-content:space-between;align-items:center;padding:2.4mm 0;border-bottom:1px solid #f4ecf8}.r:last-of-type{border:0}.r b{display:block;font-size:10.5pt}.r small{color:#8d8a99;font-size:10pt}'+
+  '.st{font-size:9.5pt;padding:1.2mm 4mm;border-radius:99px;background:#f4ecf8;color:#8d8a99}.st.ok{background:linear-gradient(120deg,#f5a6cf,#b99be3);color:#fff}'+
+  '.fim{text-align:center;margin-top:3mm;padding:4mm;border-radius:5mm;font-size:12pt;font-weight:700;background:'+(ok?'linear-gradient(120deg,#f5a6cf,#b99be3);color:#fff':'#fdf0f7;color:#d9729f')+'}'+
+  ".obg{text-align:center;margin:6mm 6mm 0}.obg h2{font-size:22pt;color:#f08fbd;margin-bottom:3mm}.obg p{font-size:11pt;line-height:1.6;margin:0 auto;max-width:130mm;color:#6b6877}"+
+  '.ft{margin-top:6mm;text-align:center;font-size:8.5pt;letter-spacing:.2em;color:#9a96a6}.ft b{display:block;letter-spacing:.3em;margin-bottom:1.5mm;color:#6b6877}'+
+  '</style></head><body><div class="pg"><img class="logo" src="'+O+'/logo-biyou-light.png" alt="biyou nails" onerror="this.style.display=\'none\'">'+
+  '<p class="ey">comprovante de pagamento</p><h1>'+(ok?'tudo certo, ':'obrigada, ')+'<i>'+esc(nome.toLowerCase())+'</i>!</h1><p class="sub">'+esc(p.nome||'seu pedido')+(p.dataPedido?' · pedido em '+fd(p.dataPedido):'')+' · emitido em '+hoje+'</p>'+
+  '<div class="box"><h2>resumo do pedido</h2>'+L('valor do set',brl(t.valor))+(t.desc?L('desconto pix à vista (5%)','−'+brl(t.desc)):'')+(t.frete?L('frete',brl(t.frete)):'')+(t.juros>0.009?L('juros do cartão ('+t.jp+'%)','+'+brl(t.juros)):'')+L('total',brl(t.total),1)+
+    (modo?'<div class="l" style="color:#8d8a99;font-size:9.5pt"><span>forma de pagamento</span><span>'+esc(modo)+'</span></div>':'')+'</div>'+
+  '<div class="box"><h2>pagamentos</h2>'+R(t.tot?'valor total à vista':'sinal de 40% na confirmação',t.ent,p.ent.pago,p.ent.data)+(t.fim>0.004?R(t.tot?'frete na finalização':'restante'+(t.frete?' + frete':'')+' na finalização',t.fim,p.fim.pago,p.fim.data):'')+
+    '<div class="fim">'+(ok?'pagamento concluído':'falta pagar: '+brl(t.saldo))+'</div></div>'+
+  ((p.entregaForma||p.entrega||p.dataEnvio)?'<div class="box"><h2>entrega</h2>'+(p.entregaForma?L('forma',esc(p.entregaForma)+(p.freteServico&&!/m[aã]os|retirad/i.test(p.entregaForma)?' · '+esc(p.freteServico):'')):'')+(p.entrega?L('previsão',fd(p.entrega)):'')+(p.dataEnvio?L('enviado / entregue em',fd(p.dataEnvio)):'')+'</div>':'')+
+  '<div class="obg"><h2>obrigada por confiar no meu trabalho</h2><p>cada set é feito com muito carinho, pensando em você. espero que ame o resultado e use sem moderação. qualquer dúvida ou ajuste, é só me chamar.</p></div>'+
+  '<div class="ft"><b>let your nails be like you</b>biyou nails · @biyounails</div></div></body></html>';
+  var w=window.open('','_blank');if(!w)return alert('o navegador bloqueou a janela. libere pop-ups para este site e tente de novo.');
+  w.document.open();w.document.write(h);w.document.close();
+  var go=function(){setTimeout(function(){try{w.focus();w.print()}catch(e){}},300)};
+  (w.document.fonts&&w.document.fonts.ready?w.document.fonts.ready:Promise.resolve()).then(function(){var im=w.document.querySelector('.logo');if(im&&!im.complete)im.onload=im.onerror=go;else go()});
 }
 
 /* ---------- imagens de referência ---------- */
