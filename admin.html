@@ -296,7 +296,7 @@ function comprovante(){
   "@font-face{font-family:Fogthree;src:url('"+O+"/fonts/fogthree.woff') format('woff')}"+
   '@page{size:A4;margin:0}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}html,body{margin:0}'+
   "body{font-family:'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#4A4E57;background:#fff}"+
-  '.pg{width:210mm;min-height:296mm;padding:9mm 18mm;margin:0 auto;background:linear-gradient(180deg,#eaf6fc 0,#fdf7fb 38%,#fff 70%)}'+
+  '.pg{width:210mm;min-height:296mm;padding:9mm 18mm 7mm;display:flex;flex-direction:column;margin:0 auto;background:linear-gradient(180deg,#eaf6fc 0,#fdf7fb 38%,#fff 70%)}'+
   '.logo{display:block;height:17mm;margin:0 auto 4mm}.ey{text-align:center;font-size:9pt;letter-spacing:.35em;text-transform:uppercase;color:#8d8a99;margin:0}'+
   "h1{font-family:Fogthree,Georgia,serif;font-weight:400;font-size:30pt;text-align:center;margin:3mm 0 1mm;color:#4A4E57}h1 i{font-style:normal;color:#f08fbd}"+
   '.sub{text-align:center;color:#8d8a99;font-size:11pt;margin:0 0 6mm}.box{background:#fff;border:1px solid #efe4f6;border-radius:6mm;padding:4.5mm 7mm;margin-bottom:3.5mm;box-shadow:0 2mm 6mm -3mm rgba(150,110,190,.25)}'+
@@ -304,7 +304,7 @@ function comprovante(){
   '.r{display:flex;justify-content:space-between;align-items:center;padding:2.4mm 0;border-bottom:1px solid #f4ecf8}.r:last-of-type{border:0}.r b{display:block;font-size:10.5pt}.r small{color:#8d8a99;font-size:10pt}'+
   '.st{font-size:9.5pt;padding:1.2mm 4mm;border-radius:99px;background:#f4ecf8;color:#8d8a99}.st.ok{background:linear-gradient(120deg,#f5a6cf,#b99be3);color:#fff}'+
   '.fim{text-align:center;margin-top:3mm;padding:4mm;border-radius:5mm;font-size:12pt;font-weight:700;background:'+(ok?'linear-gradient(120deg,#f5a6cf,#b99be3);color:#fff':'#fdf0f7;color:#d9729f')+'}'+
-  ".obg{text-align:center;margin:6mm 6mm 0}.obg h2{font-size:22pt;color:#f08fbd;margin-bottom:3mm}.obg p{font-size:11pt;line-height:1.6;margin:0 auto;max-width:130mm;color:#6b6877}"+
+  ".obg{text-align:center;margin:5mm 0 0}.obg p{font-family:Fogthree,Georgia,serif;font-size:17pt;line-height:1.35;color:#f08fbd;margin:2.5mm 0}.stars{margin-top:auto;padding-top:5mm}.sp{white-space:pre;overflow:hidden;font-size:7pt;line-height:1.7;color:#c4a6e8}"+
   '.ft{margin-top:6mm;text-align:center;font-size:8.5pt;letter-spacing:.2em;color:#9a96a6}.ft b{display:block;letter-spacing:.3em;margin-bottom:1.5mm;color:#6b6877}'+
   '</style></head><body><div class="pg"><img class="logo" src="'+O+'/logo-biyou-light.png" alt="biyou nails" onerror="this.style.display=\'none\'">'+
   '<p class="ey">comprovante de pagamento</p><h1>'+(ok?'tudo certo, ':'obrigada, ')+'<i>'+esc(nome.toLowerCase())+'</i>!</h1><p class="sub">'+esc(p.nome||'seu pedido')+(p.dataPedido?' · pedido em '+fd(p.dataPedido):'')+' · emitido em '+hoje+'</p>'+
@@ -313,8 +313,8 @@ function comprovante(){
   '<div class="box"><h2>pagamentos</h2>'+R(t.tot?'valor total à vista':'sinal de 40% na confirmação',t.ent,p.ent.pago,p.ent.data)+(t.fim>0.004?R(t.tot?'frete na finalização':'restante'+(t.frete?' + frete':'')+' na finalização',t.fim,p.fim.pago,p.fim.data):'')+
     '<div class="fim">'+(ok?'pagamento concluído':'falta pagar: '+brl(t.saldo))+'</div></div>'+
   ((p.entregaForma||p.entrega||p.dataEnvio)?'<div class="box"><h2>entrega</h2>'+(p.entregaForma?L('forma',esc(p.entregaForma)+(p.freteServico&&!/m[aã]os|retirad/i.test(p.entregaForma)?' · '+esc(p.freteServico):'')):'')+(p.entrega?L('previsão',fd(p.entrega)):'')+(p.dataEnvio?L('enviado / entregue em',fd(p.dataEnvio)):'')+'</div>':'')+
-  '<div class="obg"><h2>obrigada por confiar no meu trabalho</h2><p>cada set é feito com muito carinho, pensando em você. espero que ame o resultado e use sem moderação. qualquer dúvida ou ajuste, é só me chamar.</p></div>'+
-  '<div class="ft"><b>let your nails be like you</b>biyou nails · @biyounails</div></div></body></html>';
+  '<div class="obg"><p>cada set é feito com muito carinho, pensando em você.<br>espero que ame o resultado</p></div>'+
+  '<div class="ft"><b>let your nails be like you</b>biyou nails · @biyounails</div><div class="stars"><div class="sp">˚　　　　✦　　　.　　. 　 ˚　.　　　　　 . ✦　　　 　˚　　　　 . ★⋆. ࿐࿔</div><div class="sp">　　　.   　　˚　　 　　*　　 　　✦　　　.　　.　　　✦　˚ 　　　　 ˚　.˚　　　　✦　　　.　　. 　 ˚　.　　　　 　　 　　　　        ੈ✧̣̇˳·˖✶   ✦</div></div></div></body></html>';
   var w=window.open('','_blank');if(!w)return alert('o navegador bloqueou a janela. libere pop-ups para este site e tente de novo.');
   w.document.open();w.document.write(h);w.document.close();
   var go=function(){setTimeout(function(){try{w.focus();w.print()}catch(e){}},300)};
