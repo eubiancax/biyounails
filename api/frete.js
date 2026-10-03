@@ -10,7 +10,10 @@ async function chamar(url, token, corpo) {
     body: JSON.stringify(corpo),
   });
   let j; try { j = await r.json(); } catch (e) { j = null; }
-  if (!Array.isArray(j)) throw new Error((j && (j.message || j.error)) || 'recusou a consulta (HTTP ' + r.status + ') — confira o token');
+  if (!Array.isArray(j)) {
+    const det = j && j.errors ? ' [' + Object.entries(j.errors).map(([k, v]) => k + ': ' + [].concat(v).join(', ')).join('; ') + ']' : '';
+    throw new Error(((j && (j.message || j.error)) || 'recusou a consulta (HTTP ' + r.status + ') — confira o token') + det);
+  }
   return j;
 }
 const lista = (j, fonte) => j.filter((x) => x && !x.error && !x.has_error && (x.custom_price || x.price))
@@ -18,11 +21,21 @@ const lista = (j, fonte) => j.filter((x) => x && !x.error && !x.has_error && (x.
 
 async function melhorEnvio(d) {
   const base = process.env.MELHOR_ENVIO_SANDBOX === '1' ? 'https://sandbox.melhorenvio.com.br' : 'https://melhorenvio.com.br';
-  return lista(await chamar(base + '/api/v2/me/shipment/calculate', process.env.MELHOR_ENVIO_TOKEN, {
-    from: { postal_code: d.origem }, to: { postal_code: d.cep },
-    package: { height: d.altura, width: d.largura, length: d.comprimento, weight: d.peso / 1000 },
-    options: { insurance_value: d.valor, receipt: false, own_hand: false, collect: false },
-  }), 'melhor envio');
+  const url = base + '/api/v2/me/shipment/calculate', kg = d.peso / 1000;
+  const servicos = process.env.MELHOR_ENVIO_SERVICOS || '1,2,3,4,17';
+  const topo = { from: { postal_code: d.origem }, to: { postal_code: d.cep } };
+  // o Melhor Envio aceita o pacote de mais de um jeito; tenta um e, se recusar os dados, tenta o outro
+  const variantes = [
+    { ...topo, package: { height: d.altura, width: d.largura, length: d.comprimento, weight: kg }, options: { insurance_value: d.valor, receipt: false, own_hand: false }, services: servicos },
+    { ...topo, products: [{ id: '1', width: d.largura, height: d.altura, length: d.comprimento, weight: kg, insurance_value: d.valor, quantity: 1 }], services: servicos },
+    { ...topo, products: [{ id: '1', width: d.largura, height: d.altura, length: d.comprimento, weight: kg, insurance_value: d.valor, quantity: 1 }] },
+  ];
+  let erro;
+  for (const corpo of variantes) {
+    try { return lista(await chamar(url, process.env.MELHOR_ENVIO_TOKEN, corpo), 'melhor envio'); }
+    catch (e) { erro = e; if (!/invalid|inv[aá]lid/i.test(e.message)) break; }
+  }
+  throw erro;
 }
 async function superFrete(d) {
   const base = process.env.SUPERFRETE_SANDBOX === '1' ? 'https://sandbox.superfrete.com' : 'https://api.superfrete.com';
