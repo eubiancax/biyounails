@@ -51,6 +51,7 @@ label{display:block;font-size:.72rem;color:var(--muted-foreground);margin:0 0 4p
 .pw .card{text-align:center;max-width:340px;width:90%;padding:34px 30px}.pw input{text-align:center;margin-bottom:12px}
 .prow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--border);border-radius:14px;margin-bottom:8px;cursor:pointer;background:var(--secondary);transition:.3s}.prow:hover{border-color:var(--primary)}
 .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-top:14px}.th{position:relative;aspect-ratio:1;border-radius:14px;overflow:hidden;border:1px solid var(--border)}.th img{width:100%;height:100%;object-fit:cover;display:block}.th button{position:absolute;top:4px;right:4px;border:none;background:rgba(255,255,255,.88);border-radius:50%;width:24px;height:24px;cursor:pointer}
+.g4{display:grid;gap:0 12px;grid-template-columns:1fr 1fr}@media(min-width:760px){.g4{grid-template-columns:repeat(4,1fr)}}
 .hide{display:none!important}
 </style>
 </head>
@@ -117,15 +118,18 @@ function save(){
 /* ---------- cálculo ---------- */
 var curP=null;
 function tk(){var a=new Uint8Array(16);crypto.getRandomValues(a);return Array.prototype.map.call(a,function(b){return ('0'+b.toString(16)).slice(-2)}).join('')}
-function pNovo(){return {id:tk().slice(0,8),nome:'',status:'orçamento',valor:'',pgto:'pix',entregaForma:'',frete:'',entrega:'',ideias:'',refs:[],ent:{pago:false,data:''},fim:{pago:false,data:''}}}
-function calc(p){var v=num(p.valor),base=p.pgto==='pix'?v*0.95:v,fr=num(p.frete),ent=base*0.4,fim=base-ent+fr,total=base+fr,pago=(p.ent.pago?ent:0)+(p.fim.pago?fim:0);
-  return {valor:v,desc:v-base,base:base,frete:fr,ent:ent,fim:fim,total:total,pago:pago,saldo:total-pago}}
+function pNovo(){return {id:tk().slice(0,8),nome:'',status:'orçamento',valor:'',pgto:'pix_sinal',entregaForma:'',frete:'',freteServico:'',juros:'',entregues:[],envio:{cpf:'',cep:'',rua:'',numero:'',compl:'',bairro:'',cidade:'',uf:'',alt:'',larg:'',comp:'',peso:''},entrega:'',ideias:'',refs:[],entregues:[],ent:{pago:false,data:''},fim:{pago:false,data:''}}}
+function calc(p){var v=num(p.valor),fr=num(p.frete),m=p.pgto,ct=m==='cartao',tot=m==='pix_total',j=ct?num(p.juros)/100:0,base=tot?v*0.95:v,
+  ent=tot?base:base*0.4*(1+j),fim=tot?fr:(base*0.6+fr)*(1+j),total=ent+fim,pago=(p.ent.pago?ent:0)+(p.fim.pago?fim:0);
+  return {valor:v,desc:tot?v-base:0,jp:ct?num(p.juros):0,juros:total-(base+fr),base:base,frete:fr,ent:ent,fim:fim,total:total,pago:pago,saldo:total-pago,tot:tot}}
+function mapPg(p){var g=p.pgto;if(!g||g==='pix')g=p.pix===false?'cartao':'pix_sinal';return ['pix_total','pix_sinal','cartao'].indexOf(g)<0?'pix_sinal':g}
 function normP(p){
   var b=pNovo(),v=p.valor;
   if(v==null&&Array.isArray(p.itens))v=p.itens.reduce(function(a,i){return a+num(i.v)},0)||'';
-  var o={id:String(p.id||b.id),nome:p.nome||p.name||'',status:STATUS[p.status]?p.status:'orçamento',valor:v==null?'':v,pgto:p.pgto?p.pgto:(p.pix===false?'cartao':'pix'),
-    entregaForma:p.entregaForma||'',frete:p.frete||'',entrega:p.entrega||'',ideias:[p.ideias,Array.isArray(p.links)?p.links.join(' '):p.links].filter(Boolean).join('\n'),
+  var o={id:String(p.id||b.id),nome:p.nome||p.name||'',status:STATUS[p.status]?p.status:'orçamento',valor:v==null?'':v,pgto:mapPg(p),
+    entregaForma:p.entregaForma||'',frete:p.frete||'',freteServico:p.freteServico||'',juros:p.juros||'',envio:Object.assign(pNovo().envio,p.envio||{}),entrega:p.entrega||'',ideias:[p.ideias,Array.isArray(p.links)?p.links.join(' '):p.links].filter(Boolean).join('\n'),
     refs:Array.isArray(p.refs)?p.refs.filter(function(x){return /^[a-f0-9]{24}$/.test(x)}):[],
+    entregues:Array.isArray(p.entregues)?p.entregues.filter(function(x){return /^[a-f0-9]{24}$/.test(x)}):[],
     ent:{pago:!!(p.ent&&p.ent.pago),data:(p.ent&&p.ent.data)||''},fim:{pago:!!(p.fim&&p.fim.pago),data:(p.fim&&p.fim.data)||''}};
   if(Array.isArray(p.pagos)&&!p.ent){var t=calc(o),pg=p.pagos.reduce(function(a,x){return a+num(x.v)},0);
     if(t.ent>0&&pg>=t.ent-.01)o.ent.pago=true;if(t.total>0&&pg>=t.total-.01){o.ent.pago=true;o.fim.pago=true}}
@@ -204,56 +208,96 @@ function pedido(pid){
   '<div class="card"><h2><span class="dot" style="background:var(--dot-lilac)"></span>pedido</h2><p class="hint">ex: set perolinha</p>'+
     '<div class="f"><label>nome do set</label><input data-k="nome" value="'+esc(p.nome)+'"></div><div class="grid" style="gap:12px"><div class="f"><label>status</label><select data-k="status">'+opts+'</select></div>'+
     '<div class="f"><label>entrega prevista</label><input type="date" data-k="entrega" value="'+esc(p.entrega)+'"></div></div></div>'+
-  '<div class="card"><h2><span class="dot" style="background:var(--dot-peach)"></span>valor, pagamento e entrega</h2><p class="hint">40% na confirmação · restante + frete na finalização</p>'+
+  '<div class="card"><h2><span class="dot" style="background:var(--dot-peach)"></span>valor, pagamento e entrega</h2><p class="hint">sinal de 40% + restante e frete · ou pix à vista com 5% de desconto</p>'+
     '<div class="grid" style="gap:12px"><div class="f"><label>valor do set (R$)</label><input data-k="valor" inputmode="decimal" value="'+esc(p.valor)+'"></div>'+
-    '<div class="f"><label>forma de pagamento</label><select data-k="pgto"><option value="pix"'+(p.pgto==='pix'?' selected':'')+'>pix (5% de desconto à vista)</option><option value="cartao"'+(p.pgto==='cartao'?' selected':'')+'>cartão de crédito (juros do banco)</option></select></div>'+
+    '<div class="f"><label>forma de pagamento</label><select data-k="pgto"><option value="pix_sinal"'+(p.pgto==='pix_sinal'?' selected':'')+'>pix com sinal: 40% + restante e frete (sem desconto)</option><option value="pix_total"'+(p.pgto==='pix_total'?' selected':'')+'>pix à vista: valor total (5% de desconto)</option><option value="cartao"'+(p.pgto==='cartao'?' selected':'')+'>cartão de crédito (juros do banco)</option></select></div>'+
+    '<div class="f'+(p.pgto==='cartao'?'':' hide')+'" id="jf"><label>juros do cartão (%)</label><input data-k="juros" inputmode="decimal" placeholder="ex: 12,5" value="'+esc(p.juros)+'"></div>'+
     '<div class="f"><label>forma de entrega</label><input data-k="entregaForma" list="fe" value="'+esc(p.entregaForma)+'"><datalist id="fe"><option>retirada</option><option>correios</option><option>motoboy</option><option>uber</option></datalist></div>'+
     '<div class="f"><label>frete (R$)</label><input data-k="frete" inputmode="decimal" value="'+esc(p.frete)+'"></div></div></div>'+
-  '<div class="card"><h2><span class="dot" style="background:var(--dot-green)"></span>resumo financeiro</h2><p class="hint">marque quando receber cada parte</p><div id="tot"></div></div>'+
-  '<div class="card"><h2><span class="dot" style="background:var(--dot-blue)"></span>referências</h2><p class="hint">fotos e ideias do set</p>'+
+  envioHtml(p)+'<div class="card"><h2><span class="dot" style="background:var(--dot-green)"></span>resumo financeiro</h2><p class="hint">marque quando receber cada parte</p><div id="tot"></div></div>'+
+  '<div class="card"><h2><span class="dot" style="background:var(--dot-blue)"></span>referências</h2><p class="hint">fotos e ideias que a cliente mandou</p>'+
     '<div class="f"><textarea data-k="ideias" placeholder="cores, charms, formato, tamanho…">'+esc(p.ideias)+'</textarea></div>'+
-    '<button class="pill sm" id="upb">+ adicionar imagens</button><input type="file" id="upf" accept="image/*" multiple class="hide"><div id="refs"></div></div></div>';
-  bind(p,function(){totais()});
+    '<button class="pill sm" id="upb">+ adicionar imagens</button><input type="file" id="upf" accept="image/*" multiple class="hide"><div id="refs"></div></div>'+
+  '<div class="card"><h2><span class="dot" style="background:var(--dot-green)"></span>o que foi entregue</h2><p class="hint">fotos do resultado · a cliente também vê</p><button class="pill sm" id="upb2">+ adicionar fotos</button><input type="file" id="upf2" accept="image/*" multiple class="hide"><div id="entregues"></div></div></div>';
+  bind(p,function(k){if(k==='pgto')$('jf').classList.toggle('hide',p.pgto!=='cartao');if(k==='entregaForma')$('envio').classList.toggle('hide',!envioVis(p));totais()});
+  envioInit();
   $('volta').onclick=function(){perfil(c.id)};
-  $('del').onclick=function(){if(confirm('excluir este pedido?')){p.refs.forEach(delImg);c.pedidos=c.pedidos.filter(function(x){return x!==p});save();perfil(c.id)}};
+  $('del').onclick=function(){if(confirm('excluir este pedido?')){p.refs.concat(p.entregues).forEach(delImg);c.pedidos=c.pedidos.filter(function(x){return x!==p});save();perfil(c.id)}};
   $('upb').onclick=function(){$('upf').click()};
-  $('upf').onchange=function(){if(this.files.length)subir(this.files)};
+  $('upf').onchange=function(){if(this.files.length)subir(this.files,'refs','upb','refs')};
+  $('upb2').onclick=function(){$('upf2').click()};
+  $('upf2').onchange=function(){if(this.files.length)subir(this.files,'entregues','upb2','entregues')};
   $('resumo').onclick=function(){var t=calc(p),dd=function(x){return x.split('-').reverse().join('/')};
-    var s='olá, '+c.nome+'! resumo do pedido '+p.nome+':\n\nvalor do set: '+brl(t.valor)+(t.desc?'\ndesconto pix (5%): −'+brl(t.desc):'')+'\n40% na confirmação: '+brl(t.ent)+'\nrestante'+(t.frete?' + frete':'')+' na finalização: '+brl(t.fim)+
-      '\ntotal: '+brl(t.total)+(p.pgto==='cartao'?' (+ juros do cartão)':'')+(p.entregaForma?'\nentrega: '+p.entregaForma:'')+(p.entrega?' · prevista '+dd(p.entrega):'');
+    var s='olá, '+c.nome+'! resumo do pedido '+p.nome+':\n\nvalor do set: '+brl(t.valor)+(t.desc?'\ndesconto pix (5%): −'+brl(t.desc):'')+'\n'+(t.tot?'valor total à vista (pix)':'40% na confirmação (sinal)')+': '+brl(t.ent)+(t.fim>0.004?'\n'+(t.tot?'frete':'restante'+(t.frete?' + frete':''))+' na finalização: '+brl(t.fim):'')+
+      (t.juros>0.009?'\njuros do cartão ('+t.jp+'%): '+brl(t.juros):'')+'\ntotal: '+brl(t.total)+(p.entregaForma?'\nentrega: '+p.entregaForma:'')+(p.entrega?' · prevista '+dd(p.entrega):'');
     navigator.clipboard.writeText(s).then(function(){$('resumo').textContent='copiado ✓';setTimeout(function(){$('resumo').textContent='copiar resumo'},1500)})};
   totais();refsDraw();
 }
 function totais(){
   var p=curP,t=calc(p),line=function(id,txt,v,on){return '<div class="sum"><label style="margin:0;display:flex;gap:8px;align-items:center;color:var(--foreground);font-size:.88rem"><input type="checkbox" id="'+id+'" style="width:auto"'+(on?' checked':'')+'> '+txt+'</label><span>'+brl(v)+'</span></div>'};
   $('tot').innerHTML='<div class="sum"><span>valor do set</span><span>'+brl(t.valor)+'</span></div>'+(t.desc?'<div class="sum"><span>desconto pix (5%)</span><span>−'+brl(t.desc)+'</span></div>':'')+
-  '<div class="sum"><span>frete</span><span>'+brl(t.frete)+'</span></div><div class="sum big"><span>total</span><span>'+brl(t.total)+'</span></div>'+
-  line('c1','40% na confirmação',t.ent,p.ent.pago)+line('c2','restante'+(t.frete?' + frete':'')+' na finalização',t.fim,p.fim.pago)+
+  '<div class="sum"><span>frete'+(p.freteServico?' ('+esc(p.freteServico)+')':'')+'</span><span>'+brl(t.frete)+'</span></div>'+(t.juros>0.009?'<div class="sum"><span>juros do cartão ('+t.jp+'%)</span><span>+'+brl(t.juros)+'</span></div>':'')+'<div class="sum big"><span>total</span><span>'+brl(t.total)+'</span></div>'+
+  line('c1',t.tot?'valor total à vista (pix)':'40% na confirmação (sinal)',t.ent,p.ent.pago)+(t.fim>0.004?line('c2',t.tot?'frete na finalização':'restante'+(t.frete?' + frete':'')+' na finalização',t.fim,p.fim.pago):'')+
   '<div class="sum big"><span>falta pagar</span><span style="color:'+(t.saldo>0.009?'var(--dot-pink)':'oklch(60% .12 150)')+'">'+brl(t.saldo)+'</span></div>'+
-  (p.pgto==='cartao'?'<p class="muted" style="margin:8px 0 0">os juros do cartão são cobrados pelo banco e não entram nesta conta.</p>':'');
+  '';
   var hoje=new Date().toISOString().slice(0,10);
   $('c1').onchange=function(){p.ent={pago:this.checked,data:this.checked?hoje:''};save();totais()};
-  $('c2').onchange=function(){p.fim={pago:this.checked,data:this.checked?hoje:''};save();totais()};
+  if($('c2'))$('c2').onchange=function(){p.fim={pago:this.checked,data:this.checked?hoje:''};save();totais()};
+}
+
+/* ---------- envio (Melhor Envio) ---------- */
+function envioVis(p){var f=(p.entregaForma||'').trim().toLowerCase();return !!f&&!/retirad/.test(f)}
+function envioHtml(p){
+  var f=function(k,l,m){return '<div class="f"><label>'+l+'</label><input data-e="'+k+'" '+(m||'')+' value="'+esc(p.envio[k])+'"></div>'};
+  return '<div class="card'+(envioVis(p)?'':' hide')+'" id="envio" style="grid-column:1/-1"><h2><span class="dot" style="background:var(--dot-blue)"></span>dados de envio</h2><p class="hint">preencha, calcule o frete (melhor envio e superfrete) e escolha o serviço · só você vê estes dados</p>'+
+  '<div class="g4">'+f('cpf','CPF','inputmode="numeric"')+f('cep','CEP de destino','inputmode="numeric"')+f('rua','rua')+f('numero','número')+
+  f('compl','complemento')+f('bairro','bairro')+f('cidade','cidade')+f('uf','UF','maxlength="2"')+
+  f('alt','altura (cm)','inputmode="decimal"')+f('larg','largura (cm)','inputmode="decimal"')+f('comp','comprimento (cm)','inputmode="decimal"')+f('peso','peso (g)','inputmode="decimal"')+'</div>'+
+  '<div style="display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 14px"><button class="pill solid sm" id="calcfr">calcular frete</button><button class="pill sm" id="cpenv">copiar dados de envio</button></div><div id="fr">'+
+  (p.freteServico?'<p class="muted">frete escolhido: <b>'+esc(p.freteServico)+'</b> · '+brl(num(p.frete))+'</p>':'')+'</div></div>';
+}
+function envioInit(){
+  var p=curP,c=cur,e=p.envio,opts=[],n=num;
+  function viacep(cep){fetch('https://viacep.com.br/ws/'+cep+'/json/').then(function(r){return r.json()}).then(function(j){if(j.erro)return;
+    [['rua',j.logradouro],['bairro',j.bairro],['cidade',j.localidade],['uf',j.uf]].forEach(function(x){if(x[1]){e[x[0]]=x[1];var i=document.querySelector('[data-e="'+x[0]+'"]');if(i)i.value=x[1]}});save()}).catch(function(){})}
+  [].forEach.call(document.querySelectorAll('[data-e]'),function(el){el.oninput=function(){e[el.dataset.e]=el.value;save();var d=(e.cep||'').replace(/\D/g,'');if(el.dataset.e==='cep'&&d.length===8)viacep(d)}});
+  $('calcfr').onclick=function(){
+    var cep=(e.cep||'').replace(/\D/g,''),box=$('fr');
+    if(cep.length!==8)return alert('informe o CEP de destino (8 números)');
+    if(!(n(e.alt)>0&&n(e.larg)>0&&n(e.comp)>0&&n(e.peso)>0))return alert('informe altura, largura, comprimento (cm) e peso (g) do pacote');
+    box.innerHTML='<p class="muted">calculando…</p>';
+    fetch('/api/frete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cep:cep,altura:n(e.alt),largura:n(e.larg),comprimento:n(e.comp),peso:n(e.peso),valor:n(p.valor)})})
+    .then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error||'erro ao calcular');return j})})
+    .then(function(j){opts=j.opcoes||[];
+      box.innerHTML=(j.avisos||[]).map(function(a){return '<p class="muted" style="color:var(--dot-pink)">'+esc(a)+'</p>'}).join('')+(opts.length?opts.map(function(o,i){return '<div class="prow" data-fr="'+i+'"><div><b style="font-size:.88rem">'+esc(o.nome)+'</b><br><span class="muted">'+esc(o.fonte)+' · '+esc(o.empresa)+(o.prazo?' · '+o.prazo+' dia(s) útil(eis)':'')+'</span></div><b>'+brl(o.preco)+'</b></div>'}).join(''):'<p class="muted">nenhum serviço disponível para esses dados</p>');
+      [].forEach.call(box.querySelectorAll('[data-fr]'),function(r){r.onclick=function(){var o=opts[r.dataset.fr];p.frete=o.preco.toFixed(2).replace('.',',');p.freteServico=o.fonte+' · '+o.empresa+' '+o.nome;
+        var fi=document.querySelector('[data-k="frete"]');if(fi)fi.value=p.frete;save();totais();box.innerHTML='<p class="muted">frete escolhido: <b>'+esc(p.freteServico)+'</b> · '+brl(o.preco)+'</p>'}})})
+    .catch(function(err){box.innerHTML='<p class="muted" style="color:var(--dot-pink)">'+esc(err.message)+'</p>'});
+  };
+  $('cpenv').onclick=function(){var s='destinatário: '+c.nome+'\ncpf: '+e.cpf+'\ntelefone: '+c.tel+'\nendereço: '+e.rua+', '+e.numero+(e.compl?' - '+e.compl:'')+'\nbairro: '+e.bairro+'\ncidade: '+e.cidade+'/'+e.uf+'\ncep: '+e.cep+
+    '\npacote: '+e.alt+' x '+e.larg+' x '+e.comp+' cm · '+e.peso+' g\nvalor declarado: '+brl(n(p.valor))+(p.freteServico?'\nserviço: '+p.freteServico:'');
+    navigator.clipboard.writeText(s).then(function(){$('cpenv').textContent='copiado ✓';setTimeout(function(){$('cpenv').textContent='copiar dados de envio'},1500)})};
 }
 
 /* ---------- imagens de referência ---------- */
 function resize(file,cb){var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){var k=Math.min(1,1100/Math.max(im.width,im.height)),cv=document.createElement('canvas');
   cv.width=Math.round(im.width*k);cv.height=Math.round(im.height*k);cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);cb(cv.toDataURL('image/jpeg',.8))};im.onerror=function(){cb(null)};im.src=r.result};r.onerror=function(){cb(null)};r.readAsDataURL(file)}
 function delImg(id){fetch('/api/upload?id='+id,{method:'DELETE'}).catch(function(){})}
-function refsDraw(){
-  var p=curP,el=$('refs');if(!el||!p)return;
-  el.className=p.refs.length?'thumbs':'';
-  el.innerHTML=p.refs.length?p.refs.map(function(id,n){return '<div class="th"><a href="/api/img?id='+id+'" target="_blank" rel="noopener noreferrer"><img loading="lazy" alt="referência" src="/api/img?id='+id+'"></a><button data-rr="'+n+'" aria-label="remover">✕</button></div>'}).join(''):'<p class="muted" style="margin-top:12px">nenhuma imagem ainda</p>';
-  [].forEach.call(el.querySelectorAll('[data-rr]'),function(b){b.onclick=function(){if(!confirm('remover esta imagem?'))return;delImg(p.refs.splice(+b.dataset.rr,1)[0]);save();refsDraw()}});
+function refsDraw(){galDraw('refs','refs');galDraw('entregues','entregues')}
+function galDraw(key,elId){
+  var p=curP,el=$(elId);if(!el||!p)return;var l=p[key];
+  el.className=l.length?'thumbs':'';
+  el.innerHTML=l.length?l.map(function(id,n){return '<div class="th"><a href="/api/img?id='+id+'" target="_blank" rel="noopener noreferrer"><img loading="lazy" alt="imagem" src="/api/img?id='+id+'"></a><button data-rr="'+n+'" aria-label="remover">✕</button></div>'}).join(''):'<p class="muted" style="margin-top:12px">nenhuma imagem ainda</p>';
+  [].forEach.call(el.querySelectorAll('[data-rr]'),function(b){b.onclick=function(){if(!confirm('remover esta imagem?'))return;delImg(l.splice(+b.dataset.rr,1)[0]);save();galDraw(key,elId)}});
 }
-function subir(files){
+function subir(files,key,btnId,elId){
   if(!apiOk)return alert('para enviar imagens o servidor precisa estar ativo (entre de novo com a senha e confira o banco de dados).');
-  var p=curP,btn=$('upb');btn.textContent='enviando…';
+  var p=curP,btn=$(btnId),txt=btn.textContent;btn.textContent='enviando…';
   [].slice.call(files).reduce(function(ch,f){return ch.then(function(){return new Promise(function(ok){resize(f,function(d){
     if(!d){alert('não consegui ler a imagem '+f.name);return ok()}
     fetch('/api/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:d})})
-    .then(function(r){return r.json().then(function(j){if(!r.ok)throw 0;return j})}).then(function(j){p.refs.push(j.id);save();refsDraw()})
-    .catch(function(){alert('falha ao enviar '+f.name)}).then(ok)})})})},Promise.resolve()).then(function(){if($('upb'))$('upb').textContent='+ adicionar imagens'});
+    .then(function(r){return r.json().then(function(j){if(!r.ok)throw 0;return j})}).then(function(j){p[key].push(j.id);save();if(curP===p)galDraw(key,elId)})
+    .catch(function(){alert('falha ao enviar '+f.name)}).then(ok)})})})},Promise.resolve()).then(function(){if($(btnId))$(btnId).textContent=txt});
 }
 
 /* ---------- métricas ---------- */
