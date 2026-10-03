@@ -32,6 +32,7 @@ a.pill{display:inline-block;text-decoration:none;color:var(--foreground);border:
 .pl{display:flex;align-items:center;gap:14px}
 .orb{width:56px;height:56px;border-radius:50%;flex:none;background:conic-gradient(var(--dot-blue),var(--dot-lilac),var(--dot-pink),var(--dot-peach),var(--dot-blue));box-shadow:inset 0 0 0 14px var(--card),inset 0 0 0 16px var(--border)}
 .orb.spin{animation:s 6s linear infinite}@keyframes s{to{transform:rotate(360deg)}}
+.prog{height:6px;background:var(--secondary);border-radius:99px;margin-top:16px;overflow:hidden}#pf{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--primary))}.tm{display:flex;justify-content:space-between;font-size:.68rem;color:var(--muted-foreground);margin-top:6px}.ctl{display:flex;gap:12px;justify-content:center;align-items:center;margin-top:12px}
 .pl .t{flex:1;min-width:0;font-family:Georgia,serif;font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pl small{display:block;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted-foreground);font-family:inherit}
 .b{border:none;background:var(--secondary);color:var(--foreground);width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:.9rem}
@@ -40,6 +41,7 @@ input[type=range]{width:100%;accent-color:var(--primary);margin-top:12px}
 details.card summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px}details.card summary::-webkit-details-marker{display:none}
 .tag{font-size:.68rem;padding:3px 12px;border-radius:99px;background:linear-gradient(120deg,var(--accent),var(--primary));color:#fff}
 h3{font-family:Georgia,serif;font-weight:400;font-size:.95rem;margin:20px 0 6px;color:var(--muted-foreground)}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px;margin-top:8px}.thumbs img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;border:1px solid var(--border);display:block}
 .msg{text-align:center;color:var(--muted-foreground);padding:80px 0}
 </style>
 </head>
@@ -55,49 +57,67 @@ var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){r
 var brl=function(n){return (n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})};
 var num=function(v){return parseFloat(String(v).replace(',','.'))||0};
 var ETAPAS=['orçamento','aprovado','em produção','enviado','finalizado'];
-var t=new URLSearchParams(location.search).get('t')||'';
+var t0=new URLSearchParams(location.search).get('t')||'',t=t0;
 fetch('/api/cliente?t='+encodeURIComponent(t)).then(function(r){if(!r.ok)throw 0;return r.json()}).then(draw)
 .catch(function(){$('main').innerHTML='<p class="msg">este link não está disponível.<br>fale com a biyou no instagram 💜</p>'});
 
-function calcP(p){var sub=p.itens.reduce(function(a,i){return a+num(i.v)},0),desc=p.pix?sub*.05:0,total=sub-desc+num(p.frete),pago=p.pagos.reduce(function(a,x){return a+num(x.v)},0);return {desc:desc,total:total,pago:pago,falta:total-pago}}
+function calcP(p){var v=num(p.valor),base=p.pgto==='cartao'?v:v*.95,fr=num(p.frete),ent=base*.4,fim=base-ent+fr,pe=(p.ent||{}).pago,pf=(p.fim||{}).pago;
+  return {valor:v,desc:v-base,frete:fr,ent:ent,fim:fim,total:base+fr,pe:pe,pf:pf,falta:base+fr-(pe?ent:0)-(pf?fim:0)}}
 function ped(p,open){
-  var t=calcP(p),idx=Math.max(0,ETAPAS.indexOf(p.status)),lk=(p.links||'').split('\n').map(function(l){return l.trim()}).filter(function(l){return /^https?:\/\//.test(l)});
+  var t=calcP(p),idx=Math.max(0,ETAPAS.indexOf(p.status)),st=function(ok){return ok?'<b style="color:oklch(60% .12 150)">pago ✓</b>':'<span>pendente</span>'};
   return '<details class="card"'+(open?' open':'')+'><summary><span style="font-family:Georgia,serif;font-size:1.05rem">'+esc(p.nome||'pedido')+'</span><span class="tag">'+esc(p.status)+'</span></summary>'+
   '<div class="steps" style="margin:18px 0 6px">'+ETAPAS.map(function(e,n){return '<div class="st'+(n<=idx?' on':'')+'"><i></i>'+e+'</div>'}).join('')+'</div>'+
-  (p.entrega?'<p class="txt">entrega prevista: <b style="color:var(--foreground)">'+esc(p.entrega.split('-').reverse().join('/'))+'</b></p>':'')+
-  '<h3>orçamento</h3>'+p.itens.filter(function(i){return i.d||i.v}).map(function(i){return '<div class="sum"><span>'+esc(i.d)+'</span><span>'+brl(num(i.v))+'</span></div>'}).join('')+
-  (t.desc?'<div class="sum"><span>desconto pix (5%)</span><span>−'+brl(t.desc)+'</span></div>':'')+(num(p.frete)?'<div class="sum"><span>frete</span><span>'+brl(num(p.frete))+'</span></div>':'')+
-  '<div class="sum big"><span>total</span><span>'+brl(t.total)+'</span></div>'+
-  '<h3>pagamentos</h3>'+(p.pagos.length?p.pagos.map(function(x){return '<div class="sum"><span>'+esc((x.data||'').split('-').reverse().join('/'))+' · '+esc(x.forma)+'</span><span>'+brl(num(x.v))+'</span></div>'}).join(''):'<p class="txt">nenhum pagamento registrado ainda</p>')+
+  '<h3>entrega</h3>'+(p.entregaForma?'<div class="sum"><span>forma</span><span>'+esc(p.entregaForma)+'</span></div>':'')+(p.entrega?'<div class="sum"><span>previsão</span><span>'+esc(p.entrega.split('-').reverse().join('/'))+'</span></div>':'')+
+  (!p.entregaForma&&!p.entrega?'<p class="txt">a combinar</p>':'')+
+  '<h3>pagamento · '+(p.pgto==='cartao'?'cartão de crédito (juros do banco)':'pix (5% de desconto à vista)')+'</h3>'+
+  '<div class="sum"><span>valor do set</span><span>'+brl(t.valor)+'</span></div>'+(t.desc?'<div class="sum"><span>desconto pix (5%)</span><span>−'+brl(t.desc)+'</span></div>':'')+
+  '<div class="sum"><span>40% na confirmação · '+brl(t.ent)+'</span>'+st(t.pe)+'</div>'+
+  '<div class="sum"><span>restante'+(t.frete?' + frete':'')+' na finalização · '+brl(t.fim)+'</span>'+st(t.pf)+'</div>'+
   '<div class="sum big"><span>falta pagar</span><span>'+(t.falta>.009?brl(t.falta):'tudo certo ✓')+'</span></div>'+
-  ((p.ideias||lk.length)?'<h3>ideias e referências</h3>'+(p.ideias?'<p class="txt">'+esc(p.ideias)+'</p>':'')+lk.map(function(l){return '<a class="pill" target="_blank" rel="noopener noreferrer" href="'+esc(l)+'">abrir referência ↗</a>'}).join(''):'')+'</details>';
+  ((p.ideias||(p.refs||[]).length)?'<h3>referências</h3>'+(p.ideias?'<p class="txt">'+esc(p.ideias)+'</p>':'')+
+    ((p.refs||[]).length?'<div class="thumbs">'+p.refs.map(function(id){var u='/api/img?id='+id+'&t='+encodeURIComponent(t0);return '<a href="'+u+'" target="_blank" rel="noopener noreferrer"><img loading="lazy" alt="referência" src="'+u+'"></a>'}).join('')+'</div>':''):'')+'</details>';
 }
 function draw(c){
-  var ps=c.pedidos||[],g=ps.reduce(function(a,p){var t=calcP(p);a.total+=t.total;a.pago+=t.pago;a.falta+=t.falta;return a},{total:0,pago:0,falta:0});
+  var ps=c.pedidos||[],g=ps.reduce(function(a,p){var x=calcP(p);a.total+=x.total;a.falta+=x.falta;return a},{total:0,falta:0});g.pago=g.total-g.falta;
   var h='<h1>olá, <span>'+esc((c.nome||'').split(' ')[0])+'</span>!</h1><p class="sub">aqui você acompanha os seus pedidos</p>';
+  h+=pcard();
   if(ps.length>1)h+='<div class="card"><h2><span class="dot" style="background:var(--dot-green)"></span>resumo geral</h2><div class="sum"><span>total dos pedidos</span><span>'+brl(g.total)+'</span></div><div class="sum"><span>já pago</span><span>'+brl(g.pago)+'</span></div><div class="sum big"><span>falta pagar</span><span>'+(g.falta>.009?brl(g.falta):'tudo certo ✓')+'</span></div></div>';
   h+=ps.length?ps.map(function(p){return ped(p,ps.length===1)}).join(''):'<div class="card"><p class="txt" style="margin:0">seus pedidos vão aparecer aqui 💜</p></div>';
   if(c.medidas)h+='<details class="card"><summary><span style="font-family:Georgia,serif;font-size:1.05rem">minhas medidas</span></summary><p class="txt" style="margin-top:14px">'+esc(c.medidas)+'</p></details>';
-  h+='<div class="card"><h2><span class="dot" style="background:var(--dot-peach)"></span>nossa playlist</h2><div class="pl"><div id="orb" class="orb"></div>'+
-  '<div class="t"><small>tocando agora</small><span id="tt">carregando…</span></div>'+
-  '<button class="b" id="pv" aria-label="anterior">⏮</button><button class="b p" id="pp" aria-label="tocar">▶</button><button class="b" id="nx" aria-label="próxima">⏭</button></div>'+
-  '<input id="vol" type="range" min="0" max="100" value="30" aria-label="volume"><div style="position:absolute;left:-9999px;width:320px;height:180px;opacity:.01"><div id="yt"></div></div></div>'+
-  '<p class="eyebrow" style="margin-top:30px;letter-spacing:.1em">let your nails be like you</p>';
+  h+='<p class="eyebrow" style="margin-top:30px;letter-spacing:.1em">let your nails be like you</p>';
   $('main').innerHTML=h;player();
 }
 
-/* playlist — mesma do site */
-var PLAYLIST='PLAfsW0Gx9jic',yt,playing=false;
+/* playlist — mesma lógica do player do site */
+function pcard(){return '<div class="card"><h2><span class="dot" style="background:var(--dot-peach)"></span>nossa playlist</h2>'+
+  '<div class="pl"><div id="orb" class="orb"></div><div class="t"><small>tocando agora</small><span id="tt">carregando playlist…</span></div></div>'+
+  '<div class="prog"><div id="pf"></div></div><div class="tm"><span id="tc">0:00</span><span id="td">0:00</span></div>'+
+  '<div class="ctl"><button class="b" id="sh" aria-label="ordem aleatória" title="ordem aleatória">⤮</button><button class="b" id="pv" aria-label="anterior">⏮</button><button class="b p" id="pp" aria-label="tocar">▶</button><button class="b" id="nx" aria-label="próxima">⏭</button></div>'+
+  '<input id="vol" type="range" min="0" max="100" value="30" aria-label="volume">'+
+  '<div style="position:absolute;left:-9999px;top:0;width:320px;height:180px;overflow:hidden;opacity:.01;pointer-events:none"><div id="yt"></div></div></div>'}
+var PLAYLIST='PLAfsW0Gx9jic',yt,ids=[],order=[],pos=0,shuffleOn=true,playing=false,errs=0,tries=0,ready=false;
+function shuf(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),x=a[i];a[i]=a[j];a[j]=x}return a}
+function build(){order=ids.map(function(_,i){return i});if(shuffleOn)shuf(order);pos=0}
+function load(){try{ids=yt.getPlaylist()||[]}catch(e){ids=[]}if(ids.length&&!order.length)build()}
+function playAt(n,auto){if(!order.length)return false;pos=((n%order.length)+order.length)%order.length;var v=ids[order[pos]];try{auto?yt.loadVideoById(v):yt.cueVideoById(v)}catch(e){return false}return true}
+function go(d,auto){load();if(!playAt(pos+d,auto)){try{d>0?yt.nextVideo():yt.previousVideo()}catch(e){}}}
+function fmt(s){s=Math.floor(s||0);var m=Math.floor(s/60),r=s%60;return m+':'+(r<10?'0':'')+r}
+function fail(){var el=$('tt');if(el)el.innerHTML='não consegui carregar · <a href="https://www.youtube.com/playlist?list='+PLAYLIST+'" target="_blank" rel="noopener noreferrer">abrir no youtube</a>'}
+function upd(){try{var d=yt.getVideoData();if(d&&d.title)$('tt').textContent=d.title}catch(e){}}
 function player(){
-  if(!(window.YT&&YT.Player)){return setTimeout(player,400)}
-  yt=new YT.Player('yt',{height:'180',width:'320',playerVars:{listType:'playlist',list:PLAYLIST,controls:0,playsinline:1,rel:0,origin:location.origin},
-    events:{onReady:function(){yt.setVolume(30);yt.setShuffle&&yt.setShuffle(true);title()},
-    onStateChange:function(e){playing=e.data===1;$('pp').textContent=playing?'⏸':'▶';$('orb').classList.toggle('spin',playing);title()}}});
-  $('pp').onclick=function(){playing?yt.pauseVideo():yt.playVideo()};
-  $('pv').onclick=function(){yt.previousVideo()};$('nx').onclick=function(){yt.nextVideo()};
-  $('vol').oninput=function(){yt.setVolume(+this.value)};
+  if(!$('yt'))return;
+  if(!(window.YT&&YT.Player)){if(++tries>150)return fail();return setTimeout(player,80)}
+  yt=new YT.Player('yt',{height:'180',width:'320',playerVars:{listType:'playlist',list:PLAYLIST,autoplay:0,controls:0,playsinline:1,rel:0,enablejsapi:1,origin:location.origin},
+    events:{onReady:function(){ready=true;try{yt.unMute();yt.setVolume(+$('vol').value)}catch(e){}load();if(ids.length>1)playAt(0,false);$('tt').textContent='toque no play';setTimeout(upd,800)},
+    onStateChange:function(e){playing=e.data===1;if(playing)errs=0;$('pp').textContent=playing?'⏸':'▶';$('orb').classList.toggle('spin',playing);if(e.data===0)go(1,true);setTimeout(upd,300)},
+    onError:function(){errs++;if(errs>(ids.length||5)){$('tt').textContent='não consegui tocar esta playlist';return}$('tt').textContent='trocando de faixa…';setTimeout(function(){go(1,true)},300)}}});
+  setTimeout(function(){if(!ready)fail()},12000);
+  $('pp').onclick=function(){if(!ready)return;try{if(yt.getPlayerState()===1){yt.pauseVideo()}else{if(!ids.length)load();yt.unMute();yt.playVideo();setTimeout(function(){if(yt.getPlayerState()!==1&&yt.getPlayerState()!==3)yt.playVideo()},300)}}catch(e){}};
+  $('pv').onclick=function(){if(ready)go(-1,playing)};$('nx').onclick=function(){if(ready)go(1,playing)};
+  $('sh').onclick=function(){shuffleOn=!shuffleOn;this.style.opacity=shuffleOn?1:.4;if(ids.length)build()};
+  $('vol').oninput=function(){try{yt.setVolume(+this.value)}catch(e){}};
+  setInterval(function(){try{var d=yt.getDuration();if(d>0){$('pf').style.width=Math.min(100,yt.getCurrentTime()/d*100)+'%';$('tc').textContent=fmt(yt.getCurrentTime());$('td').textContent=fmt(d)}}catch(e){}},500);
 }
-function title(){try{var d=yt.getVideoData();if(d&&d.title)$('tt').textContent=d.title}catch(e){}}
 })();
 </script>
 </body>
