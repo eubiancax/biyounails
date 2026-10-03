@@ -1,8 +1,0 @@
-{
-  "name": "biyou-nails-site",
-  "version": "1.0.0",
-  "private": true,
-  "dependencies": {
-    "@google-analytics/data": "^4.9.0"
-  }
-}
