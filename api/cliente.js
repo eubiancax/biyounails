@@ -1,7 +1,7 @@
 // Público: devolve SÓ a página de quem tem o link (token). Não expõe outros clientes nem observações internas.
 const URL_ = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
 const TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
-const pick = (p) => ({ nome: p.nome, status: p.status, entrega: p.entrega, itens: p.itens || [], frete: p.frete, pix: p.pix !== false, pagos: p.pagos || [], ideias: p.ideias, links: p.links });
+const pick = (p) => ({ nome: p.nome, status: p.status, entrega: p.entrega, entregaForma: p.entregaForma, frete: p.frete, freteServico: p.freteServico, juros: p.juros, valor: p.valor, pgto: p.pgto, ideias: p.ideias, refs: p.refs || [], entregues: p.entregues || [], ent: { pago: !!(p.ent && p.ent.pago) }, fim: { pago: !!(p.fim && p.fim.pago) } });
 
 module.exports = async (req, res) => {
   const t = String((req.query || {}).t || '');
@@ -13,6 +13,6 @@ module.exports = async (req, res) => {
   }
   if (!c) { await new Promise((r) => setTimeout(r, 600)); return res.status(404).json({ error: 'link inválido' }); }
   res.setHeader('Cache-Control', 'no-store');
-  const pedidos = Array.isArray(c.pedidos) ? c.pedidos : [c]; // aceita o formato antigo (1 pedido solto)
+  const pedidos = Array.isArray(c.pedidos) ? c.pedidos : [];
   res.status(200).json({ nome: c.nome, medidas: c.medidas || '', pedidos: pedidos.map(pick) });
 };
