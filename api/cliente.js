@@ -1,7 +1,7 @@
 // Público: devolve SÓ a página de quem tem o link (token). Não expõe outros clientes nem observações internas.
 const URL_ = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
 const TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
-const pick = (p) => ({ nome: p.nome, status: p.status, entrega: p.entrega, entregaForma: p.entregaForma, frete: p.frete, freteServico: p.freteServico, juros: p.juros, valor: p.valor, pgto: p.pgto, ideias: p.ideias, refs: p.refs || [], entregues: p.entregues || [], ent: { pago: !!(p.ent && p.ent.pago) }, fim: { pago: !!(p.fim && p.fim.pago) } });
+const pick = (p) => ({ nome: p.nome, status: p.status, entrega: p.entrega, dataPedido: p.dataPedido, dataEnvio: p.dataEnvio, entregaForma: p.entregaForma, frete: p.frete, freteServico: p.freteServico, juros: p.juros, valor: p.valor, pgto: p.pgto, ideias: p.ideias, refs: p.refs || [], entregues: p.entregues || [], ent: { pago: !!(p.ent && p.ent.pago) }, fim: { pago: !!(p.fim && p.fim.pago) } });
 
 module.exports = async (req, res) => {
   const t = String((req.query || {}).t || '');
