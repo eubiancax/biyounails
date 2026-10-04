@@ -14,5 +14,5 @@ module.exports = async (req, res) => {
   if (!c) { await new Promise((r) => setTimeout(r, 600)); return res.status(404).json({ error: 'link inválido' }); }
   res.setHeader('Cache-Control', 'no-store');
   const pedidos = Array.isArray(c.pedidos) ? c.pedidos : [];
-  res.status(200).json({ nome: c.nome, medidas: c.medidas || '', pedidos: pedidos.map(pick) });
+  res.status(200).json({ nome: c.nome, medidas: c.medidas || '', medidasDedos: c.medidasDedos || null, pedidos: pedidos.map(pick) });
 };
