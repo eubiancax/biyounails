@@ -7,15 +7,16 @@
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
 <script src="https://www.youtube.com/iframe_api" async></script>
 <style>
+@font-face{font-family:Fogthree;src:url('/fonts/fogthree.woff') format('woff');font-display:swap}
 :root{--primary-foreground:oklch(99% .005 300);--shadow-soft:0 18px 40px -24px oklch(40% .08 320 / .45);--radius:1.25rem;--background:oklch(99% .006 95);--foreground:oklch(32% .03 285);--card:oklch(100% 0 0);
 --primary:oklch(74% .11 310);--secondary:oklch(96% .02 320);--muted-foreground:oklch(56% .03 290);--accent:oklch(80% .13 350);
 --border:oklch(93% .015 310);--dot-blue:oklch(78% .1 230);--dot-lilac:oklch(72% .12 300);--dot-pink:oklch(76% .16 350);
 --dot-green:oklch(84% .08 140);--dot-peach:oklch(83% .11 60);--shadow:0 18px 40px -24px oklch(40% .08 320 / .45)}
 *{box-sizing:border-box}
 body{margin:0;background:linear-gradient(160deg,oklch(99% .01 95),oklch(97% .02 330));min-height:100vh;color:var(--foreground);font-family:"Manrope",-apple-system,"Segoe UI",Roboto,sans-serif}
-.wrap{max-width:760px;margin:0 auto;padding:48px 20px 80px}
+.wrap{max-width:760px;margin:0 auto;padding:96px 20px 80px}
 .eyebrow{text-align:center;font-size:.75rem;letter-spacing:.3em;color:var(--muted-foreground);margin:0}
-h1,h2{font-family:Georgia,"Fogthree",serif;font-weight:400}
+h1,h2{font-family:Fogthree,Georgia,serif;font-weight:400}
 h1{font-size:2.8rem;text-align:center;margin:14px 0 6px}h1 span{color:var(--accent)}
 .sub{text-align:center;color:var(--muted-foreground);margin:0 0 32px}
 .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);margin-bottom:20px}
@@ -33,15 +34,16 @@ a.pill{display:inline-block;text-decoration:none;color:var(--foreground);border:
 .orb{width:56px;height:56px;border-radius:50%;flex:none;background:conic-gradient(var(--dot-blue),var(--dot-lilac),var(--dot-pink),var(--dot-peach),var(--dot-blue));box-shadow:inset 0 0 0 14px var(--card),inset 0 0 0 16px var(--border)}
 .orb.spin{animation:s 6s linear infinite}@keyframes s{to{transform:rotate(360deg)}}
 .prog{height:6px;background:var(--secondary);border-radius:99px;margin-top:16px;overflow:hidden}#pf{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--primary))}.tm{display:flex;justify-content:space-between;font-size:.68rem;color:var(--muted-foreground);margin-top:6px}.ctl{display:flex;gap:12px;justify-content:center;align-items:center;margin-top:12px}
-.pl .t{flex:1;min-width:0;font-family:Georgia,serif;font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pl .t{flex:1;min-width:0;font-family:Fogthree,Georgia,serif;font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pl small{display:block;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted-foreground);font-family:inherit}
 .b{border:none;background:var(--secondary);color:var(--foreground);width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:.9rem}
 .b.p{background:var(--primary);color:#fff;width:46px;height:46px}
 input[type=range]{width:100%;accent-color:var(--primary);margin-top:12px}
 details.card summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px}details.card summary::-webkit-details-marker{display:none}
 .tag{font-size:.68rem;padding:3px 12px;border-radius:99px;background:linear-gradient(120deg,var(--accent),var(--primary));color:#fff}
-h3{font-family:Georgia,serif;font-weight:400;font-size:.95rem;margin:20px 0 6px;color:var(--muted-foreground)}
+h3{font-family:Fogthree,Georgia,serif;font-weight:400;font-size:.95rem;margin:20px 0 6px;color:var(--muted-foreground)}
 .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px;margin-top:8px}.thumbs img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;border:1px solid var(--border);display:block}
+.mrow{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:8px;padding:8px 0;font-size:.9rem;border-bottom:1px solid var(--border)}.mrow.h{color:var(--muted-foreground);font-size:.75rem;margin-top:12px}.mrow span+span{text-align:center}
 .msg{text-align:center;color:var(--muted-foreground);padding:80px 0}
 .biyou-player-wrap{margin-top:2.5rem;max-width:34rem;margin-left:auto;margin-right:auto;}
 .biyou-player-card{position:relative;overflow:hidden;border-radius:1.75rem;padding:1.5rem;background:transparent;box-sizing:border-box;transition:transform .4s ease;}
@@ -134,11 +136,25 @@ h3{font-family:Georgia,serif;font-weight:400;font-size:.95rem;margin:20px 0 6px;
 .biyou-player-slot button:hover{transform:translateY(-1px);background:color-mix(in oklab, var(--primary) 18%, transparent)}
 @media (max-width:640px){#biyou-dock{left:.75rem;bottom:7rem}}
 @media (prefers-reduced-motion:reduce){#biyou-dock *{animation:none !important}}
-</style>
+.sh{position:fixed;top:0;left:0;right:0;z-index:40;background:color-mix(in oklab,var(--card) 55%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.sh-in{max-width:72rem;margin:0 auto;padding:10px 20px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:16px}
+.sh-logo img{height:34px;width:auto;display:block}
+.sh-nav{display:none;gap:28px;justify-self:center}
+.sh-nav a,.sh-mob a{position:relative;font-size:.875rem;color:var(--muted-foreground);text-decoration:none;transition:color .3s}
+.sh-nav a::after{content:"";position:absolute;left:0;bottom:-4px;height:1px;width:0;background:var(--primary);transition:width .3s}
+.sh-nav a:hover::after,.sh-nav a.on::after{width:100%}
+.sh-nav a:hover,.sh-mob a:hover,.sh a.on{color:var(--foreground)}
+.sh-r{display:flex;gap:8px;justify-content:flex-end}
+.sh-ic{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:color-mix(in oklab,var(--card) 80%,transparent);display:grid;place-items:center;color:var(--foreground);cursor:pointer;padding:0;font:inherit;text-decoration:none}
+.sh-mob{display:none;flex-direction:column;align-items:center;gap:10px;padding:6px 20px 16px}.sh-mob.open{display:flex}
+@media(min-width:768px){.sh-in{grid-template-columns:1fr auto 1fr}.sh-nav{display:flex}.sh-burger,.sh-mob{display:none!important}}
 .biyou-player-slot{display:none!important}
 </style>
 </head>
 <body>
+<header class="sh"><div class="sh-in"><a href="/index.html#inicio" class="sh-logo" aria-label="biyou nails"><img src="/logo-biyou-light.png" alt="biyou nails"></a><nav class="sh-nav"><a href="/index.html#inicio">início</a><a href="/index.html#fotos">fotos</a><a href="/index.html#duvidas">dúvidas e avisos</a><a href="/index.html#pedidos">pedidos</a><a href="/passo-a-passo.html">passo a passo</a><a href="/acesso.html" class="on">área da cliente</a></nav><div class="sh-r"><a class="sh-ic" href="https://www.instagram.com/biyounails/" target="_blank" rel="noopener noreferrer" aria-label="instagram"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".6" fill="currentColor"/></svg></a><button class="sh-ic sh-burger" id="shb" type="button" aria-label="abrir menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></div></div><nav class="sh-mob" id="shm"><a href="/index.html#inicio">início</a><a href="/index.html#fotos">fotos</a><a href="/index.html#duvidas">dúvidas e avisos</a><a href="/index.html#pedidos">pedidos</a><a href="/passo-a-passo.html">passo a passo</a><a href="/acesso.html" class="on">área da cliente</a></nav></header>
+<script>document.getElementById("shb").onclick=function(){document.getElementById("shm").classList.toggle("open")}</script>
+
 <div id="pl-src" style="height:0;overflow:hidden"><div class="biyou-player-wrap"><div class="biyou-player-card"><div style="position:absolute;left:-9999px;top:0;width:320px;height:180px;overflow:hidden;opacity:0.01;pointer-events:none;"><div id="biyou-yt-player"></div></div><div class="biyou-player-glow" aria-hidden="true"></div><div class="biyou-player-body"><div id="biyou-orb" class="biyou-orb"><div class="biyou-orb-groove" style="inset:6%"></div><div class="biyou-orb-groove" style="inset:16%"></div><div class="biyou-orb-groove" style="inset:26%"></div><div class="biyou-orb-groove" style="inset:36%"></div><div class="biyou-orb-label"></div></div><div class="biyou-player-main"><div class="biyou-player-meta"><p class="biyou-player-eyebrow"><span class="biyou-eq" aria-hidden="true"><i></i><i></i><i></i></span> tocando agora</p><p id="biyou-yt-title" class="biyou-player-title font-display">carregando playlist...</p></div><div class="biyou-player-progress-wrap"><div id="biyou-yt-progress-bg" class="biyou-track"><div id="biyou-yt-progress-fill" class="biyou-track-fill" style="width:0%"></div><div id="biyou-yt-progress-dot" class="biyou-progress-dot" style="left:0%"></div></div><div class="biyou-player-times"><span id="biyou-yt-time-current">0:00</span><span id="biyou-yt-time-total">0:00</span></div></div><div class="biyou-player-bar"><div class="biyou-player-controls"><button id="biyou-yt-prev" type="button" aria-label="faixa anterior" class="biyou-ctrl-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="11 19 2 12 11 5 11 19"></polygon><polygon points="22 19 13 12 22 5 22 19"></polygon></svg></button><button id="biyou-yt-toggle" type="button" aria-label="tocar" class="biyou-ctrl-btn biyou-ctrl-btn--play"><svg id="biyou-yt-icon-play" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg><svg id="biyou-yt-icon-pause" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect></svg></button><button id="biyou-yt-next" type="button" aria-label="pr&#243;xima faixa" class="biyou-ctrl-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="2 5 11 12 2 19 2 5"></polygon><polygon points="13 5 22 12 13 19 13 5"></polygon></svg></button><button id="biyou-yt-shuffle" type="button" aria-label="ordem aleat&#243;ria" title="ordem aleat&#243;ria" class="biyou-ctrl-btn is-active"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg></button></div><div class="biyou-player-volume"><button id="biyou-yt-mute" type="button" aria-label="mudo" class="biyou-vol-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg></button><input id="biyou-yt-volume" type="range" min="0" max="100" value="30" class="biyou-volume" aria-label="volume" /></div></div></div></div><div class="biyou-suggest-section" style="border-top:1px solid rgba(128,100,140,.12);margin:12px -24px 0;padding:12px 24px 0"><p style="font-size:.65rem;color:var(--muted-foreground);margin:0 0 8px;letter-spacing:.1em;text-transform:uppercase;opacity:.7">indique uma música</p><div style="display:flex;gap:6px"><input id="biyou-suggest-input" type="text" placeholder="nome da música ou artista" style="flex:1;padding:6px 10px;border:1px solid rgba(128,100,140,.15);border-radius:8px;background:rgba(128,100,140,.06);color:var(--foreground);font-size:.78rem;outline:none;font-family:inherit" /><button id="biyou-suggest-btn" type="button" style="padding:6px 14px;border:none;border-radius:8px;background:var(--primary);color:white;font-size:.75rem;cursor:pointer;white-space:nowrap;font-family:inherit;opacity:.85">enviar</button></div><p id="biyou-suggest-msg" style="font-size:.7rem;color:var(--primary);margin:6px 0 0;display:none"></p></div></div></div></div>
 <div class="wrap">
   <p class="eyebrow">biyou nails</p>
@@ -155,28 +171,32 @@ var t0=new URLSearchParams(location.search).get('t')||'',t=t0;
 fetch('/api/cliente?t='+encodeURIComponent(t)).then(function(r){if(!r.ok)throw 0;return r.json()}).then(draw)
 .catch(function(){$('main').innerHTML='<p class="msg">este link não está disponível.<br>fale com a biyou no instagram 💜</p>'});
 
-function calcP(p){var v=num(p.valor),fr=num(p.frete),m=p.pgto,ct=m==='cartao',tot=m==='pix_total',j=ct?num(p.juros)/100:0,base=tot?v*.95:v,ent=tot?base:base*.4*(1+j),fim=tot?fr:(base*.6+fr)*(1+j),total=ent+fim,pe=(p.ent||{}).pago,pf=(p.fim||{}).pago;
-  return {valor:v,desc:tot?v-base:0,jp:ct?num(p.juros):0,juros:total-(base+fr),frete:fr,ent:ent,fim:fim,total:total,tot:tot,pe:pe,pf:pf,falta:total-(pe?ent:0)-(pf?fim:0)}}
-var PG={pix_total:'pix à vista · valor total com 5% de desconto',pix_sinal:'pix · sinal de 40% + restante e frete',pix:'pix · sinal de 40% + restante e frete',cartao:'cartão de crédito (juros do banco)'};
+function calcP(p){var v=num(p.valor),fr=num(p.frete),m=p.pgto,ct=m==='cartao',all=m==='pix_total'||m==='normal',j=ct?num(p.juros)/100:0,base=m==='pix_total'?v*.95:v,ent=all?base:base*.4*(1+j),fim=all?fr:(base*.6+fr)*(1+j),total=ent+fim,pe=(p.ent||{}).pago,pf=(p.fim||{}).pago;
+  return {valor:v,desc:m==='pix_total'?v-base:0,jp:ct?num(p.juros):0,juros:total-(base+fr),frete:fr,ent:ent,fim:fim,total:total,tot:all,lab1:m==='pix_total'?'valor total à vista':'valor total (sem desconto)',pe:pe,pf:pf,falta:total-(pe?ent:0)-(pf?fim:0)}}
+var PG={normal:'valor total à vista · sem desconto',pix_total:'pix à vista · valor total com 5% de desconto',pix_sinal:'pix · sinal de 40% + restante e frete',pix:'pix · sinal de 40% + restante e frete',cartao:'cartão de crédito (juros do banco)'};
 function ped(p,open){
   var t=calcP(p),idx=Math.max(0,ETAPAS.indexOf(p.status)),st=function(ok){return ok?'<b style="color:oklch(60% .12 150)">pago ✓</b>':'<span>pendente</span>'};
-  return '<details class="card"'+(open?' open':'')+'><summary><span style="font-family:Georgia,serif;font-size:1.05rem">'+esc(p.nome||'pedido')+'</span><span class="tag">'+esc(p.status)+'</span></summary>'+
+  return '<details class="card"'+(open?' open':'')+'><summary><span style="font-family:Fogthree,Georgia,serif;font-size:1.05rem">'+esc(p.nome||'pedido')+'</span><span class="tag">'+esc(p.status)+'</span></summary>'+
   '<div class="steps" style="margin:18px 0 6px">'+ETAPAS.map(function(e,n){return '<div class="st'+(n<=idx?' on':'')+'"><i></i>'+e+'</div>'}).join('')+'</div>'+
   (p.dataPedido?'<div class="sum" style="margin-top:14px"><span>pedido feito em</span><span>'+esc(p.dataPedido.split('-').reverse().join('/'))+'</span></div>':'')+'<h3>entrega</h3>'+(p.entregaForma?'<div class="sum"><span>forma</span><span>'+esc(p.entregaForma)+(p.freteServico?' · '+esc(p.freteServico):'')+'</span></div>':'')+(p.entrega?'<div class="sum"><span>previsão</span><span>'+esc(p.entrega.split('-').reverse().join('/'))+'</span></div>':'')+(p.dataEnvio?'<div class="sum"><span>enviado / entregue em</span><span>'+esc(p.dataEnvio.split('-').reverse().join('/'))+'</span></div>':'')+
   (!p.entregaForma&&!p.entrega&&!p.dataEnvio?'<p class="txt">a combinar</p>':'')+
-  '<h3>pagamento · '+(PG[p.pgto]||PG.pix_sinal)+'</h3>'+
+  '<h3>pagamento</h3><p class="txt" style="margin:0 0 6px">'+(PG[p.pgto]||PG.pix_sinal)+'</p>'+
   '<div class="sum"><span>valor do set</span><span>'+brl(t.valor)+'</span></div>'+(t.desc?'<div class="sum"><span>desconto pix (5%)</span><span>−'+brl(t.desc)+'</span></div>':'')+(t.frete?'<div class="sum"><span>frete</span><span>'+brl(t.frete)+'</span></div>':'')+(t.juros>.009?'<div class="sum"><span>juros do cartão ('+t.jp+'%)</span><span>+'+brl(t.juros)+'</span></div>':'')+
-  '<div class="sum"><span>'+(t.tot?'valor total à vista · ':'40% na confirmação · ')+brl(t.ent)+'</span>'+st(t.pe)+'</div>'+(t.fim>.004?'<div class="sum"><span>'+(t.tot?'frete':'restante'+(t.frete?' + frete':''))+' na finalização · '+brl(t.fim)+'</span>'+st(t.pf)+'</div>':'')+
+  '<div class="sum"><span>'+(t.tot?t.lab1+' · ':'40% na confirmação · ')+brl(t.ent)+'</span>'+st(t.pe)+'</div>'+(t.fim>.004?'<div class="sum"><span>'+(t.tot?'frete':'restante'+(t.frete?' + frete':''))+' na finalização · '+brl(t.fim)+'</span>'+st(t.pf)+'</div>':'')+
   '<div class="sum big"><span>falta pagar</span><span>'+(t.falta>.009?brl(t.falta):'tudo certo ✓')+'</span></div>'+
   ((p.ideias||(p.refs||[]).length)?'<h3>referências</h3>'+(p.ideias?'<p class="txt">'+esc(p.ideias)+'</p>':'')+
     ((p.refs||[]).length?'<div class="thumbs">'+p.refs.map(function(id){var u='/api/img?id='+id+'&t='+encodeURIComponent(t0);return '<a href="'+u+'" target="_blank" rel="noopener noreferrer"><img loading="lazy" alt="referência" src="'+u+'"></a>'}).join('')+'</div>':''):'')+((p.entregues||[]).length?'<h3>o que foi entregue</h3><div class="thumbs">'+p.entregues.map(function(id){var u='/api/img?id='+id+'&t='+encodeURIComponent(t0);return '<a href="'+u+'" target="_blank" rel="noopener noreferrer"><img loading="lazy" alt="entregue" src="'+u+'"></a>'}).join('')+'</div>':'')+'</details>';
 }
+function fm(x){x=String(x||'').trim();return x?(/^[\d.,]+$/.test(x)?x+'mm':x):'—'}
 function draw(c){
   var ps=c.pedidos||[],g=ps.reduce(function(a,p){var x=calcP(p);a.total+=x.total;a.falta+=x.falta;return a},{total:0,falta:0});g.pago=g.total-g.falta;
   var h='<h1>olá, <span>'+esc((c.nome||'').split(' ')[0])+'</span>!</h1><p class="sub">aqui você acompanha os seus pedidos</p>';
   if(ps.length>1)h+='<div class="card"><h2><span class="dot" style="background:var(--dot-green)"></span>resumo geral</h2><div class="sum"><span>total dos pedidos</span><span>'+brl(g.total)+'</span></div><div class="sum"><span>já pago</span><span>'+brl(g.pago)+'</span></div><div class="sum big"><span>falta pagar</span><span>'+(g.falta>.009?brl(g.falta):'tudo certo ✓')+'</span></div></div>';
   h+=ps.length?ps.map(function(p){return ped(p,ps.length===1)}).join(''):'<div class="card"><p class="txt" style="margin:0">seus pedidos vão aparecer aqui 💜</p></div>';
-  if(c.medidas)h+='<details class="card"><summary><span style="font-family:Georgia,serif;font-size:1.05rem">minhas medidas</span></summary><p class="txt" style="margin-top:14px">'+esc(c.medidas)+'</p></details>';
+  var md=c.medidasDedos||{e:[],d:[]},tem=[].concat(md.e||[],md.d||[]).some(function(x){return String(x||'').trim()});
+  if(tem||c.medidas)h+='<details class="card"><summary><span style="font-family:Fogthree,Georgia,serif;font-size:1.05rem">minhas medidas</span></summary>'+
+    (tem?'<div class="mrow h"><span></span><span>esquerda</span><span>direita</span></div>'+['dedão','indicador','dedo do meio','anelar','dedinho'].map(function(n,i){return '<div class="mrow"><span>'+n+'</span><span>'+esc(fm((md.e||[])[i]))+'</span><span>'+esc(fm((md.d||[])[i]))+'</span></div>'}).join(''):'')+
+    (c.medidas?'<p class="txt" style="margin-top:12px">'+esc(c.medidas)+'</p>':'')+'</details>';
   h+='<p class="eyebrow" style="margin-top:30px;letter-spacing:.1em">let your nails be like you</p>';
   $('main').innerHTML=h;
 }
