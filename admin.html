@@ -6,6 +6,7 @@
 <title>biyou nails — área master</title>
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
 <style>
+@font-face{font-family:Fogthree;src:url('/fonts/fogthree.woff') format('woff');font-display:swap}
 :root{--radius:1.25rem;--background:oklch(99% .006 95);--foreground:oklch(32% .03 285);--card:oklch(100% 0 0);
 --primary:oklch(74% .11 310);--secondary:oklch(96% .02 320);--muted-foreground:oklch(56% .03 290);
 --accent:oklch(80% .13 350);--border:oklch(93% .015 310);--dot-blue:oklch(78% .1 230);--dot-lilac:oklch(72% .12 300);
@@ -15,7 +16,7 @@
 body{margin:0;background:var(--background);color:var(--foreground);font-family:"Manrope",-apple-system,"Segoe UI",Roboto,sans-serif}
 .wrap{max-width:1100px;margin:0 auto;padding:40px 20px 80px}
 .eyebrow{text-align:center;font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;color:var(--primary);margin:0 0 8px}
-h1,h2,h3{font-family:Georgia,"Fogthree",serif;font-weight:400}
+h1,h2,h3{font-family:Fogthree,Georgia,serif;font-weight:400}
 h1{font-size:2.4rem;text-align:center;margin:0 0 20px;letter-spacing:.02em}
 h2{font-size:1.15rem;margin:0 0 4px;display:flex;align-items:center;gap:8px}
 .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
@@ -52,6 +53,9 @@ label{display:block;font-size:.72rem;color:var(--muted-foreground);margin:0 0 4p
 .prow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--border);border-radius:14px;margin-bottom:8px;cursor:pointer;background:var(--secondary);transition:.3s}.prow:hover{border-color:var(--primary)}
 .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-top:14px}.th{position:relative;aspect-ratio:1;border-radius:14px;overflow:hidden;border:1px solid var(--border)}.th img{width:100%;height:100%;object-fit:cover;display:block}.th button{position:absolute;top:4px;right:4px;border:none;background:rgba(255,255,255,.88);border-radius:50%;width:24px;height:24px;cursor:pointer}
 .g4{display:grid;gap:0 12px;grid-template-columns:1fr 1fr}@media(min-width:760px){.g4{grid-template-columns:repeat(4,1fr)}}
+.maos{display:flex;flex-wrap:wrap;gap:24px;justify-content:center}.mao{flex:1 1 240px;max-width:290px}
+.mao h3{text-align:center;font-size:.95rem;margin:0 0 6px;color:var(--muted-foreground)}.mao .w{position:relative}.mao svg{display:block;width:100%;height:auto}
+.mao input.md{position:absolute;width:15.5%;min-width:34px;transform:translate(-50%,-50%);padding:5px 2px;text-align:center;font-size:.72rem;border-radius:9px;background:#fff}
 .hide{display:none!important}
 </style>
 </head>
@@ -120,10 +124,11 @@ var curP=null;
 function tk(){var a=new Uint8Array(16);crypto.getRandomValues(a);return Array.prototype.map.call(a,function(b){return ('0'+b.toString(16)).slice(-2)}).join('')}
 function hoje(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
 function pNovo(){return {id:tk().slice(0,8),nome:'',status:'orçamento',dataPedido:hoje(),dataEnvio:'',valor:'',pgto:'pix_sinal',entregaForma:'',frete:'',freteServico:'',juros:'',entregues:[],envio:{cpf:'',cep:'',rua:'',numero:'',compl:'',bairro:'',cidade:'',uf:'',alt:'',larg:'',comp:'',peso:''},entrega:'',ideias:'',refs:[],entregues:[],ent:{pago:false,data:''},fim:{pago:false,data:''}}}
-function calc(p){var v=num(p.valor),fr=num(p.frete),m=p.pgto,ct=m==='cartao',tot=m==='pix_total',j=ct?num(p.juros)/100:0,base=tot?v*0.95:v,
-  ent=tot?base:base*0.4*(1+j),fim=tot?fr:(base*0.6+fr)*(1+j),total=ent+fim,pago=(p.ent.pago?ent:0)+(p.fim.pago?fim:0);
-  return {valor:v,desc:tot?v-base:0,jp:ct?num(p.juros):0,juros:total-(base+fr),base:base,frete:fr,ent:ent,fim:fim,total:total,pago:pago,saldo:total-pago,tot:tot}}
-function mapPg(p){var g=p.pgto;if(!g||g==='pix')g=p.pix===false?'cartao':'pix_sinal';return ['pix_total','pix_sinal','cartao'].indexOf(g)<0?'pix_sinal':g}
+function calc(p){var v=num(p.valor),fr=num(p.frete),m=p.pgto,ct=m==='cartao',all=m==='pix_total'||m==='normal',j=ct?num(p.juros)/100:0,base=m==='pix_total'?v*0.95:v,
+  ent=all?base:base*0.4*(1+j),fim=all?fr:(base*0.6+fr)*(1+j),total=ent+fim,pago=(p.ent.pago?ent:0)+(p.fim.pago?fim:0);
+  return {valor:v,desc:m==='pix_total'?v-base:0,jp:ct?num(p.juros):0,juros:total-(base+fr),base:base,frete:fr,ent:ent,fim:fim,total:total,pago:pago,saldo:total-pago,tot:all,
+    lab1:m==='pix_total'?'valor total à vista (pix)':m==='normal'?'valor total (sem desconto)':'40% na confirmação (sinal)'}}
+function mapPg(p){var g=p.pgto;if(!g||g==='pix')g=p.pix===false?'cartao':'pix_sinal';return ['pix_total','normal','pix_sinal','cartao'].indexOf(g)<0?'pix_sinal':g}
 function normP(p){
   var b=pNovo(),v=p.valor;
   if(v==null&&Array.isArray(p.itens))v=p.itens.reduce(function(a,i){return a+num(i.v)},0)||'';
@@ -136,9 +141,18 @@ function normP(p){
     if(t.ent>0&&pg>=t.ent-.01)o.ent.pago=true;if(t.total>0&&pg>=t.total-.01){o.ent.pago=true;o.fim.pago=true}}
   return o;
 }
+var DEDOS=['dedão','indicador','meio','anelar','dedinho'];
+function normMed(c){
+  var m=c.medidasDedos,o={e:['','','','',''],d:['','','','','']};
+  if(m&&typeof m==='object'){['e','d'].forEach(function(k){for(var i=0;i<5;i++){var v=(m[k]||[])[i];o[k][i]=v==null?'':String(v)}});return o}
+  String(c.medidas||'').split('\n').forEach(function(l){var r=l.match(/^\s*(ded[ãa]o|indicador|dedo do meio|meio|anelar|dedinho|mindinho)\s*:\s*([\d.,]+)\s*(?:mm)?\s*\/\s*([\d.,]+)/i);if(!r)return;
+    var n=r[1].toLowerCase(),i=/ded[ãa]o/.test(n)?0:n==='indicador'?1:/meio/.test(n)?2:n==='anelar'?3:4;o.e[i]=r[2];o.d[i]=r[3]});
+  return o;
+}
 function norm(c){
+  var md=normMed(c),legacy=!c.medidasDedos&&md.e.concat(md.d).some(Boolean);
   var ps=Array.isArray(c.pedidos)?c.pedidos:((c.itens||c.pagos||c.ideias)?[{nome:'pedido 1',status:c.status,entrega:c.entrega,itens:c.itens,frete:c.frete,pix:c.pix,pagos:c.pagos,ideias:c.ideias,links:c.links}]:[]);
-  return {id:String(c.id||tk().slice(0,8)),nome:c.nome||c.name||'',tel:c.tel||c.telefone||c.whatsapp||'',insta:c.insta||c.instagram||'',medidas:c.medidas||'',
+  return {id:String(c.id||tk().slice(0,8)),nome:c.nome||c.name||'',tel:c.tel||c.telefone||c.whatsapp||'',insta:c.insta||c.instagram||'',medidas:legacy?'':(c.medidas||''),medidasAntigo:legacy?String(c.medidas||''):(c.medidasAntigo||''),medidasDedos:md,
     token:/^[a-f0-9]{32}$/.test(c.token||'')?c.token:tk(),acesso:c.acesso!==false,codigo:/^[A-Z2-9]{8}$/.test(c.codigo||'')?c.codigo:gcod(),pedidos:ps.map(normP)};
 }
 function gcod(){var A='ABCDEFGHJKMNPQRSTUVWXYZ23456789',a=new Uint8Array(8),r='';crypto.getRandomValues(a);for(var i=0;i<8;i++)r+=A[a[i]%A.length];return r}
@@ -170,27 +184,41 @@ function lista(){
   [].forEach.call(document.querySelectorAll('.card.click'),function(el){el.onclick=function(){perfil(el.dataset.id)}});
 }
 
+/* ---------- mãos com as medidas ---------- */
+var POS=[[176,112,150],[142,62,106],[104,44,88],[66,60,104],[28,96,138]];
+function mao(k,c){
+  var e=k==='d',X=function(x){return e?200-x:x},sk='#f6ecfa',ln='#e6d3f0',nl='#f7bfdc',s='',i,g=function(w,col){var r='<g stroke="'+col+'" stroke-width="'+w+'" stroke-linecap="round" fill="none">';
+    for(i=1;i<5;i++)r+='<line x1="'+X(POS[i][0])+'" y1="'+(POS[i][1]+16)+'" x2="'+X(POS[i][0])+'" y2="150"/>';return r+'<line x1="'+X(162)+'" y1="176" x2="'+X(180)+'" y2="128"/></g>'},px=e?31:15;
+  s+=g(33,ln)+'<rect x="'+px+'" y="125" width="154" height="94" rx="40" fill="'+ln+'"/>'+g(30,sk)+'<rect x="'+(px+2)+'" y="127" width="150" height="90" rx="38" fill="'+sk+'"/>';
+  for(i=1;i<5;i++)s+='<rect x="'+(X(POS[i][0])-10)+'" y="'+(POS[i][1]+3)+'" width="20" height="24" rx="9" fill="'+nl+'"/>';
+  s+='<rect x="'+(X(180)-10)+'" y="116" width="20" height="24" rx="9" fill="'+nl+'" transform="rotate('+(e?-20:20)+' '+X(180)+' 128)"/>';
+  for(i=0;i<5;i++)s+='<text x="'+X(i?POS[i][0]:184)+'" y="'+(i?POS[i][1]-8:106)+'" text-anchor="middle" font-size="9" fill="#8d8a99">'+DEDOS[i]+'</text>';
+  var inp='';for(i=0;i<5;i++)inp+='<input class="md" data-md="'+k+':'+i+'" placeholder="mm" inputmode="decimal" aria-label="'+DEDOS[i]+' '+(e?'direita':'esquerda')+'" value="'+esc(c.medidasDedos[k][i])+'" style="left:'+(X(POS[i][0])/2)+'%;top:'+(POS[i][2]/2.3)+'%">';
+  return '<div class="mao"><h3>mão '+(e?'direita':'esquerda')+'</h3><div class="w"><svg viewBox="0 0 200 230" aria-hidden="true">'+s+'</svg>'+inp+'</div></div>';
+}
+
 /* ---------- perfil da cliente ---------- */
 function perfil(id){
   cur=D.filter(function(c){return c.id===id})[0];if(!cur)return lista();curP=null;
   var c=cur,t=calcC(c),link=location.origin+'/cliente.html?t='+c.token,d=(c.tel||'').replace(/\D/g,''),wa=d?'https://wa.me/'+(d.length<=11?'55':'')+d:'';
   $('clientes').innerHTML=
   '<div class="top"><button class="pill sm" id="volta">← clientes</button><button class="pill sm" id="del">excluir cliente</button></div><div class="grid">'+
-  '<div class="card"><h2><span class="dot" style="background:var(--dot-lilac)"></span>cliente</h2><p class="hint">dados de contato</p>'+
+  '<div class="card" style="order:1"><h2><span class="dot" style="background:var(--dot-lilac)"></span>cliente</h2><p class="hint">dados de contato</p>'+
     '<div class="f"><label>nome</label><input data-k="nome" value="'+esc(c.nome)+'"></div>'+
     '<div class="f"><label>telefone / whatsapp</label><input data-k="tel" inputmode="tel" value="'+esc(c.tel)+'"></div>'+
     '<div class="f"><label>instagram</label><input data-k="insta" value="'+esc(c.insta)+'"></div>'+
     (wa?'<a class="pill sm" style="text-decoration:none;display:inline-block" target="_blank" rel="noopener noreferrer" href="'+wa+'">abrir whatsapp ↗</a>':'')+'</div>'+
-  '<div class="card"><h2><span class="dot" style="background:var(--dot-blue)"></span>medidas</h2><p class="hint">a cliente também vê</p><textarea data-k="medidas" style="min-height:190px">'+esc(c.medidas)+'</textarea></div>'+
-  '<div class="card" style="grid-column:1/-1"><h2><span class="dot" style="background:var(--dot-pink)"></span>pedidos</h2><p class="hint">cada set com valor, entrega e referências</p>'+
+  '<div class="card" style="grid-column:1/-1;order:3"><h2><span class="dot" style="background:var(--dot-blue)"></span>medidas</h2><p class="hint">digite a medida de cada unha, em mm · a cliente também vê</p><div class="maos">'+mao('e',c)+mao('d',c)+'</div><div class="f" style="margin-top:14px"><label>observações das medidas (opcional)</label><textarea data-k="medidas" style="min-height:64px">'+esc(c.medidas)+'</textarea></div></div>'+
+  '<div class="card" style="grid-column:1/-1;order:4"><h2><span class="dot" style="background:var(--dot-pink)"></span>pedidos</h2><p class="hint">cada set com valor, entrega e referências</p>'+
     (c.pedidos.length?c.pedidos.map(function(p){var x=calc(p);return '<div class="prow" data-pid="'+p.id+'"><div><b style="font-size:.9rem">'+esc(p.nome||'sem nome')+'</b><br><span class="badge" style="background:'+STATUS[p.status]+'">'+esc(p.status)+'</span>'+(p.dataPedido?' <span class="muted">'+p.dataPedido.split('-').reverse().join('/')+'</span>':'')+'</div><div style="text-align:right;font-size:.8rem">'+brl(x.total)+'<br><span class="muted">falta '+brl(x.saldo)+'</span></div></div>'}).join(''):'<p class="muted">nenhum pedido ainda</p>')+
     '<button class="pill solid sm" id="addp" style="margin-top:6px">+ novo pedido</button></div>'+
-  '<div class="card"><h2><span class="dot" style="background:var(--dot-green)"></span>resumo geral</h2><p class="hint">soma de todos os pedidos</p>'+sumRows(t)+'</div>'+
-  '<div class="card"><h2><span class="dot" style="background:var(--dot-gold)"></span>acesso da cliente</h2><p class="hint">ela vê os pedidos por este link</p>'+
+  '<div class="card" style="order:2"><h2><span class="dot" style="background:var(--dot-green)"></span>resumo geral</h2><p class="hint">soma de todos os pedidos</p>'+sumRows(t)+'</div>'+
+  '<div class="card" style="order:5"><h2><span class="dot" style="background:var(--dot-gold)"></span>acesso da cliente</h2><p class="hint">ela vê os pedidos por este link</p>'+
     '<div class="f"><label>código (a cliente digita o nome dela + este código em “área da cliente”)</label><input readonly value="'+c.codigo.slice(0,4)+'-'+c.codigo.slice(4)+'" onclick="this.select()" style="letter-spacing:.2em;text-align:center;font-weight:700"></div>'+
     '<div class="f"><label>ou o link direto</label><input readonly value="'+esc(link)+'" onclick="this.select()"></div>'+
     '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="pill sm" id="ccod">copiar código</button><button class="pill sm" id="clink">copiar link</button><label style="margin:0;display:flex;gap:6px;align-items:center"><input type="checkbox" id="ac" style="width:auto"'+(c.acesso!==false?' checked':'')+'> acesso liberado</label></div></div></div>';
   bind(c);
+  [].forEach.call(document.querySelectorAll('[data-md]'),function(el){el.oninput=function(){var a=el.dataset.md.split(':');c.medidasDedos[a[0]][+a[1]]=el.value;save()}});
   $('volta').onclick=lista;
   $('del').onclick=function(){if(confirm('excluir esta cliente e todos os pedidos?')){D=D.filter(function(x){return x!==c});save();lista()}};
   $('clink').onclick=function(){navigator.clipboard.writeText(link).then(function(){$('clink').textContent='copiado ✓';setTimeout(function(){$('clink').textContent='copiar link'},1500)})};
@@ -213,7 +241,7 @@ function pedido(pid){
     '<div class="f"><label>enviado / entregue em</label><input type="date" data-k="dataEnvio" value="'+esc(p.dataEnvio)+'"></div></div></div>'+
   '<div class="card"><h2><span class="dot" style="background:var(--dot-peach)"></span>valor, pagamento e entrega</h2><p class="hint">sinal de 40% + restante e frete · ou pix à vista com 5% de desconto</p>'+
     '<div class="grid" style="gap:12px"><div class="f"><label>valor do set (R$)</label><input data-k="valor" inputmode="decimal" value="'+esc(p.valor)+'"></div>'+
-    '<div class="f"><label>forma de pagamento</label><select data-k="pgto"><option value="pix_sinal"'+(p.pgto==='pix_sinal'?' selected':'')+'>pix com sinal: 40% + restante e frete (sem desconto)</option><option value="pix_total"'+(p.pgto==='pix_total'?' selected':'')+'>pix à vista: valor total (5% de desconto)</option><option value="cartao"'+(p.pgto==='cartao'?' selected':'')+'>cartão de crédito (juros do banco)</option></select></div>'+
+    '<div class="f"><label>forma de pagamento</label><select data-k="pgto"><option value="pix_sinal"'+(p.pgto==='pix_sinal'?' selected':'')+'>pix com sinal: 40% + restante e frete (sem desconto)</option><option value="pix_total"'+(p.pgto==='pix_total'?' selected':'')+'>pix à vista: valor total (5% de desconto)</option><option value="normal"'+(p.pgto==='normal'?' selected':'')+'>valor total sem desconto (pago de uma vez)</option><option value="cartao"'+(p.pgto==='cartao'?' selected':'')+'>cartão de crédito (juros do banco)</option></select></div>'+
     '<div class="f'+(p.pgto==='cartao'?'':' hide')+'" id="jf"><label>juros do cartão (%)</label><input data-k="juros" inputmode="decimal" placeholder="ex: 12,5" value="'+esc(p.juros)+'"></div>'+
     '<div class="f"><label>forma de entrega</label><select data-k="entregaForma">'+feOpts(p.entregaForma)+'</select></div>'+
     '<div class="f"><label>frete (R$)</label><input data-k="frete" inputmode="decimal" value="'+esc(p.frete)+'"></div></div></div>'+
@@ -232,7 +260,7 @@ function pedido(pid){
   $('upb2').onclick=function(){$('upf2').click()};
   $('upf2').onchange=function(){if(this.files.length)subir(this.files,'entregues','upb2','entregues')};
   $('resumo').onclick=function(){var t=calc(p),dd=function(x){return x.split('-').reverse().join('/')};
-    var s='olá, '+c.nome+'! resumo do pedido '+p.nome+':\n\nvalor do set: '+brl(t.valor)+(t.desc?'\ndesconto pix (5%): −'+brl(t.desc):'')+'\n'+(t.tot?'valor total à vista (pix)':'40% na confirmação (sinal)')+': '+brl(t.ent)+(t.fim>0.004?'\n'+(t.tot?'frete':'restante'+(t.frete?' + frete':''))+' na finalização: '+brl(t.fim):'')+
+    var s='olá, '+c.nome+'! resumo do pedido '+p.nome+':\n\nvalor do set: '+brl(t.valor)+(t.desc?'\ndesconto pix (5%): −'+brl(t.desc):'')+'\n'+(t.lab1)+': '+brl(t.ent)+(t.fim>0.004?'\n'+(t.tot?'frete':'restante'+(t.frete?' + frete':''))+' na finalização: '+brl(t.fim):'')+
       (t.juros>0.009?'\njuros do cartão ('+t.jp+'%): '+brl(t.juros):'')+'\ntotal: '+brl(t.total)+(p.entregaForma?'\nentrega: '+p.entregaForma:'')+(p.entrega?' · prevista '+dd(p.entrega):'')+(p.dataEnvio?'\nenviado/entregue em '+dd(p.dataEnvio):'');
     navigator.clipboard.writeText(s).then(function(){$('resumo').textContent='copiado ✓';setTimeout(function(){$('resumo').textContent='copiar resumo'},1500)})};
   totais();refsDraw();
@@ -241,7 +269,7 @@ function totais(){
   var p=curP,t=calc(p),line=function(id,txt,v,on){return '<div class="sum"><label style="margin:0;display:flex;gap:8px;align-items:center;color:var(--foreground);font-size:.88rem"><input type="checkbox" id="'+id+'" style="width:auto"'+(on?' checked':'')+'> '+txt+'</label><span>'+brl(v)+'</span></div>'};
   $('tot').innerHTML='<div class="sum"><span>valor do set</span><span>'+brl(t.valor)+'</span></div>'+(t.desc?'<div class="sum"><span>desconto pix (5%)</span><span>−'+brl(t.desc)+'</span></div>':'')+
   '<div class="sum"><span>frete'+(p.freteServico?' ('+esc(p.freteServico)+')':'')+'</span><span>'+brl(t.frete)+'</span></div>'+(t.juros>0.009?'<div class="sum"><span>juros do cartão ('+t.jp+'%)</span><span>+'+brl(t.juros)+'</span></div>':'')+'<div class="sum big"><span>total</span><span>'+brl(t.total)+'</span></div>'+
-  line('c1',t.tot?'valor total à vista (pix)':'40% na confirmação (sinal)',t.ent,p.ent.pago)+(t.fim>0.004?line('c2',t.tot?'frete na finalização':'restante'+(t.frete?' + frete':'')+' na finalização',t.fim,p.fim.pago):'')+
+  line('c1',t.lab1,t.ent,p.ent.pago)+(t.fim>0.004?line('c2',t.tot?'frete na finalização':'restante'+(t.frete?' + frete':'')+' na finalização',t.fim,p.fim.pago):'')+
   '<div class="sum big"><span>falta pagar</span><span style="color:'+(t.saldo>0.009?'var(--dot-pink)':'oklch(60% .12 150)')+'">'+brl(t.saldo)+'</span></div>'+
   '';
   var hj=hoje();
@@ -286,18 +314,25 @@ function envioInit(){
 }
 
 /* ---------- comprovante de pagamento + agradecimento (PDF) ---------- */
+function estrelas(){
+  var P='M0,-1C.13,-.3 .3,-.13 1,0C.3,.13 .13,.3 0,1C-.13,.3 -.3,.13 -1,0C-.3,-.13 -.13,-.3 0,-1Z',C=['#f5a6cf','#b99be3','#70c3e8'],o='';
+  [[0,0,15,0],[-62,0,9,1],[62,0,9,1],[-110,0,6,2],[110,0,6,2],[-148,0,4,0],[148,0,4,0],[-180,0,2.6,1],[180,0,2.6,1],[-34,-9,3.4,2],[34,-9,3.4,2],[-86,8,3,0],[86,8,3,0],[-130,-8,2.4,1],[130,-8,2.4,1],[-164,8,2,2],[164,8,2,2]].forEach(function(s){
+    o+='<path d="'+P+'" transform="translate('+s[0]+' '+s[1]+') scale('+s[2]+')" fill="'+C[s[3]]+'"/>'});
+  [[-20,6,1.3],[20,6,1.3],[-46,-3,1.1],[46,-3,1.1],[-98,-7,1.2],[98,-7,1.2],[-138,5,1],[138,5,1],[-172,-4,1],[172,-4,1]].forEach(function(d){o+='<circle cx="'+d[0]+'" cy="'+d[1]+'" r="'+d[2]+'" fill="#d7c0ee"/>'});
+  return '<svg viewBox="-210 -24 420 48" style="display:block;width:100%;height:13mm" aria-hidden="true"><defs><linearGradient id="gl"><stop offset="0" stop-color="#d7c0ee" stop-opacity="0"/><stop offset=".5" stop-color="#d7c0ee"/><stop offset="1" stop-color="#d7c0ee" stop-opacity="0"/></linearGradient></defs><line x1="-205" y1="0" x2="205" y2="0" stroke="url(#gl)" stroke-width=".7"/>'+o+'</svg>';
+}
 function comprovante(){
   var c=cur,p=curP,t=calc(p),O=location.origin,fd=function(d){return d?d.split('-').reverse().join('/'):''},hoje=new Date().toLocaleDateString('pt-BR'),
     nome=(c.nome||'').trim().split(' ')[0]||'cliente',ok=t.saldo<=0.009&&t.total>0,
-    modo={pix_total:'pix à vista · valor total com 5% de desconto',pix_sinal:'pix · sinal de 40% + restante e frete',cartao:'cartão de crédito'+(t.jp?' · juros de '+t.jp+'%':'')}[p.pgto]||'',
+    modo={pix_total:'pix à vista · valor total com 5% de desconto',normal:'pagamento integral · valor normal, sem desconto',pix_sinal:'pix · sinal de 40% + restante e frete',cartao:'cartão de crédito'+(t.jp?' · juros de '+t.jp+'%':'')}[p.pgto]||'',
     L=function(l,v,b){return '<div class="l'+(b?' b':'')+'"><span>'+l+'</span><span>'+v+'</span></div>'},
     R=function(l,v,pg,d){return '<div class="r"><div><b>'+l+'</b><small>'+brl(v)+'</small></div><span class="st'+(pg?' ok':'')+'">'+(pg?'pago'+(d?' em '+fd(d):''):'pendente')+'</span></div>'};
   var h='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>comprovante - '+esc(p.nome||'pedido')+' - '+esc(c.nome)+'</title><style>'+
   "@font-face{font-family:Fogthree;src:url('"+O+"/fonts/fogthree.woff') format('woff')}"+
   '@page{size:A4;margin:0}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}html,body{margin:0}'+
   "body{font-family:'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#4A4E57;background:#fff}"+
-  '.pg{width:210mm;min-height:296mm;padding:9mm 18mm 7mm;display:flex;flex-direction:column;margin:0 auto;background:linear-gradient(180deg,#eaf6fc 0,#fdf7fb 38%,#fff 70%)}'+
-  '.logo{display:block;height:17mm;margin:0 auto 4mm}.ey{text-align:center;font-size:9pt;letter-spacing:.35em;text-transform:uppercase;color:#8d8a99;margin:0}'+
+  '.pg{width:210mm;min-height:296mm;padding:9mm 18mm 7mm;display:flex;flex-direction:column;margin:0 auto;background:#fff}'+
+  '.logo{display:block;height:17mm;width:auto;margin:0 auto 3mm}.ey{text-align:center;font-size:9pt;letter-spacing:.35em;text-transform:uppercase;color:#8d8a99;margin:0}'+
   "h1{font-family:Fogthree,Georgia,serif;font-weight:400;font-size:30pt;text-align:center;margin:3mm 0 1mm;color:#4A4E57}h1 i{font-style:normal;color:#f08fbd}"+
   '.sub{text-align:center;color:#8d8a99;font-size:11pt;margin:0 0 6mm}.box{background:#fff;border:1px solid #efe4f6;border-radius:6mm;padding:4.5mm 7mm;margin-bottom:3.5mm;box-shadow:0 2mm 6mm -3mm rgba(150,110,190,.25)}'+
   "h2{font-family:Fogthree,Georgia,serif;font-weight:400;font-size:14pt;margin:0 0 3mm}.l{display:flex;justify-content:space-between;font-size:10.5pt;padding:1.6mm 0}.l.b{border-top:1px solid #efe4f6;margin-top:1.5mm;padding-top:3mm;font-weight:700;font-size:12pt}"+
@@ -306,15 +341,15 @@ function comprovante(){
   '.fim{text-align:center;margin-top:3mm;padding:4mm;border-radius:5mm;font-size:12pt;font-weight:700;background:'+(ok?'linear-gradient(120deg,#f5a6cf,#b99be3);color:#fff':'#fdf0f7;color:#d9729f')+'}'+
   ".obg{text-align:center;margin:5mm 0 0}.obg p{font-family:Fogthree,Georgia,serif;font-size:17pt;line-height:1.35;color:#f08fbd;margin:2.5mm 0}.stars{margin-top:auto;padding-top:5mm}.sp{white-space:pre;overflow:hidden;font-size:7pt;line-height:1.7;color:#c4a6e8}"+
   '.ft{margin-top:6mm;text-align:center;font-size:8.5pt;letter-spacing:.2em;color:#9a96a6}.ft b{display:block;letter-spacing:.3em;margin-bottom:1.5mm;color:#6b6877}'+
-  '</style></head><body><div class="pg"><img class="logo" src="'+O+'/logo-biyou-light.png" alt="biyou nails" onerror="this.style.display=\'none\'">'+
+  '</style></head><body><div class="pg"><img class="logo" src="'+O+'/logo-biyou-b.png" alt="biyou nails" onerror="this.style.display=\'none\'">'+
   '<p class="ey">comprovante de pagamento</p><h1>'+(ok?'tudo certo, ':'obrigada, ')+'<i>'+esc(nome.toLowerCase())+'</i>!</h1><p class="sub">'+esc(p.nome||'seu pedido')+(p.dataPedido?' · pedido em '+fd(p.dataPedido):'')+' · emitido em '+hoje+'</p>'+
   '<div class="box"><h2>resumo do pedido</h2>'+L('valor do set',brl(t.valor))+(t.desc?L('desconto pix à vista (5%)','−'+brl(t.desc)):'')+(t.frete?L('frete',brl(t.frete)):'')+(t.juros>0.009?L('juros do cartão ('+t.jp+'%)','+'+brl(t.juros)):'')+L('total',brl(t.total),1)+
     (modo?'<div class="l" style="color:#8d8a99;font-size:9.5pt"><span>forma de pagamento</span><span>'+esc(modo)+'</span></div>':'')+'</div>'+
-  '<div class="box"><h2>pagamentos</h2>'+R(t.tot?'valor total à vista':'sinal de 40% na confirmação',t.ent,p.ent.pago,p.ent.data)+(t.fim>0.004?R(t.tot?'frete na finalização':'restante'+(t.frete?' + frete':'')+' na finalização',t.fim,p.fim.pago,p.fim.data):'')+
+  '<div class="box"><h2>pagamentos</h2>'+R(t.tot?t.lab1:'sinal de 40% na confirmação',t.ent,p.ent.pago,p.ent.data)+(t.fim>0.004?R(t.tot?'frete na finalização':'restante'+(t.frete?' + frete':'')+' na finalização',t.fim,p.fim.pago,p.fim.data):'')+
     '<div class="fim">'+(ok?'pagamento concluído':'falta pagar: '+brl(t.saldo))+'</div></div>'+
   ((p.entregaForma||p.entrega||p.dataEnvio)?'<div class="box"><h2>entrega</h2>'+(p.entregaForma?L('forma',esc(p.entregaForma)+(p.freteServico&&!/m[aã]os|retirad/i.test(p.entregaForma)?' · '+esc(p.freteServico):'')):'')+(p.entrega?L('previsão',fd(p.entrega)):'')+(p.dataEnvio?L('enviado / entregue em',fd(p.dataEnvio)):'')+'</div>':'')+
   '<div class="obg"><p>cada set é feito com muito carinho, pensando em você.<br>espero que ame o resultado</p></div>'+
-  '<div class="ft"><b>let your nails be like you</b>biyou nails · @biyounails</div><div class="stars"><div class="sp">˚　　　　✦　　　.　　. 　 ˚　.　　　　　 . ✦　　　 　˚　　　　 . ★⋆. ࿐࿔</div><div class="sp">　　　.   　　˚　　 　　*　　 　　✦　　　.　　.　　　✦　˚ 　　　　 ˚　.˚　　　　✦　　　.　　. 　 ˚　.　　　　 　　 　　　　        ੈ✧̣̇˳·˖✶   ✦</div></div></div></body></html>';
+  '<div class="ft"><b>let your nails be like you</b>biyou nails · @biyounails</div><div class="stars">'+estrelas()+'</div></div></body></html>';
   var w=window.open('','_blank');if(!w)return alert('o navegador bloqueou a janela. libere pop-ups para este site e tente de novo.');
   w.document.open();w.document.write(h);w.document.close();
   var go=function(){setTimeout(function(){try{w.focus();w.print()}catch(e){}},300)};
@@ -322,8 +357,11 @@ function comprovante(){
 }
 
 /* ---------- imagens de referência ---------- */
-function resize(file,cb){var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){var k=Math.min(1,1100/Math.max(im.width,im.height)),cv=document.createElement('canvas');
-  cv.width=Math.round(im.width*k);cv.height=Math.round(im.height*k);cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);cb(cv.toDataURL('image/jpeg',.8))};im.onerror=function(){cb(null)};im.src=r.result};r.onerror=function(){cb(null)};r.readAsDataURL(file)}
+function resize(file,cb){var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){
+  var tent=[[1100,.8],[900,.7],[700,.6]],out=null;
+  for(var i=0;i<tent.length;i++){var k=Math.min(1,tent[i][0]/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=Math.max(1,Math.round(im.width*k));cv.height=Math.max(1,Math.round(im.height*k));
+    var cx=cv.getContext('2d');cx.fillStyle='#fff';cx.fillRect(0,0,cv.width,cv.height);cx.drawImage(im,0,0,cv.width,cv.height);out=cv.toDataURL('image/jpeg',tent[i][1]);if(out.length<700000)break}
+  cb(out)};im.onerror=function(){cb(null)};im.src=r.result};r.onerror=function(){cb(null)};r.readAsDataURL(file)}
 function delImg(id){fetch('/api/upload?id='+id,{method:'DELETE'}).catch(function(){})}
 function refsDraw(){galDraw('refs','refs');galDraw('entregues','entregues')}
 function galDraw(key,elId){
@@ -338,8 +376,8 @@ function subir(files,key,btnId,elId){
   [].slice.call(files).reduce(function(ch,f){return ch.then(function(){return new Promise(function(ok){resize(f,function(d){
     if(!d){alert('não consegui ler a imagem '+f.name);return ok()}
     fetch('/api/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:d})})
-    .then(function(r){return r.json().then(function(j){if(!r.ok)throw 0;return j})}).then(function(j){p[key].push(j.id);save();if(curP===p)galDraw(key,elId)})
-    .catch(function(){alert('falha ao enviar '+f.name)}).then(ok)})})})},Promise.resolve()).then(function(){if($(btnId))$(btnId).textContent=txt});
+    .then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok)throw new Error(r.status===404?'o arquivo api/upload.js não está publicado no site (erro 404)':r.status===401?'sessão expirada, entre de novo':(j.error||'erro '+r.status));return j})}).then(function(j){p[key].push(j.id);save();if(curP===p)galDraw(key,elId)})
+    .catch(function(e){alert('falha ao enviar '+f.name+': '+(e&&e.message||'erro desconhecido'))}).then(ok)})})})},Promise.resolve()).then(function(){if($(btnId))$(btnId).textContent=txt});
 }
 
 /* ---------- métricas ---------- */
