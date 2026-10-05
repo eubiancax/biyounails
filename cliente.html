@@ -149,6 +149,10 @@ h3{font-family:Fogthree,Georgia,serif;font-weight:400;font-size:.95rem;margin:20
 .sh-mob{display:none;flex-direction:column;align-items:center;gap:10px;padding:6px 20px 16px}.sh-mob.open{display:flex}
 @media(min-width:768px){.sh-in{grid-template-columns:1fr auto 1fr}.sh-nav{display:flex}.sh-burger,.sh-mob{display:none!important}}
 .biyou-player-slot{display:none!important}
+.lb{display:none;position:fixed;inset:0;z-index:2147483647;background:rgba(24,18,32,.92);align-items:center;justify-content:center;padding:16px}.lb.open{display:flex}
+.lb img{max-width:100%;max-height:86vh;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.lb button{position:absolute;border:none;cursor:pointer;color:#fff;background:rgba(255,255,255,.16);backdrop-filter:blur(6px);width:42px;height:42px;border-radius:50%;font-size:1.3rem;line-height:1;display:grid;place-items:center}
+.lb .lx{top:14px;right:14px}.lb .lp{left:10px;top:50%;transform:translateY(-50%)}.lb .ln{right:10px;top:50%;transform:translateY(-50%)}.lb .lc{position:absolute;bottom:14px;left:0;right:0;text-align:center;color:#fff;font-size:.78rem;opacity:.8}
 </style>
 </head>
 <body>
@@ -172,8 +176,8 @@ fetch('/api/cliente?t='+encodeURIComponent(t)).then(function(r){if(!r.ok)throw 0
 .catch(function(){$('main').innerHTML='<p class="msg">este link não está disponível.<br>fale com a biyou no instagram 💜</p>'});
 
 function calcP(p){var v=num(p.valor),fr=num(p.frete),m=p.pgto,ct=m==='cartao',all=m==='pix_total'||m==='normal',j=ct?num(p.juros)/100:0,base=m==='pix_total'?v*.95:v,ent=all?base:base*.4*(1+j),fim=all?fr:(base*.6+fr)*(1+j),total=ent+fim,pe=(p.ent||{}).pago,pf=(p.fim||{}).pago;
-  return {valor:v,desc:m==='pix_total'?v-base:0,jp:ct?num(p.juros):0,juros:total-(base+fr),frete:fr,ent:ent,fim:fim,total:total,tot:all,lab1:m==='pix_total'?'valor total à vista':'valor total (sem desconto)',pe:pe,pf:pf,falta:total-(pe?ent:0)-(pf?fim:0)}}
-var PG={normal:'valor total à vista · sem desconto',pix_total:'pix à vista · valor total com 5% de desconto',pix_sinal:'pix · sinal de 40% + restante e frete',pix:'pix · sinal de 40% + restante e frete',cartao:'cartão de crédito (juros do banco)'};
+  return {valor:v,desc:m==='pix_total'?v-base:0,jp:ct?num(p.juros):0,juros:total-(base+fr),frete:fr,ent:ent,fim:fim,total:total,tot:all,lab1:m==='pix_total'?'valor total à vista':'pagamento integral',pe:pe,pf:pf,falta:total-(pe?ent:0)-(pf?fim:0)}}
+var PG={normal:'pagamento integral',pix_total:'pix à vista · valor total com 5% de desconto',pix_sinal:'pix · sinal de 40% + restante e frete',pix:'pix · sinal de 40% + restante e frete',cartao:'cartão de crédito (juros do banco)'};
 function ped(p,open){
   var t=calcP(p),idx=Math.max(0,ETAPAS.indexOf(p.status)),st=function(ok){return ok?'<b style="color:oklch(60% .12 150)">pago ✓</b>':'<span>pendente</span>'};
   return '<details class="card"'+(open?' open':'')+'><summary><span style="font-family:Fogthree,Georgia,serif;font-size:1.05rem">'+esc(p.nome||'pedido')+'</span><span class="tag">'+esc(p.status)+'</span></summary>'+
@@ -185,7 +189,7 @@ function ped(p,open){
   '<div class="sum"><span>'+(t.tot?t.lab1+' · ':'40% na confirmação · ')+brl(t.ent)+'</span>'+st(t.pe)+'</div>'+(t.fim>.004?'<div class="sum"><span>'+(t.tot?'frete':'restante'+(t.frete?' + frete':''))+' na finalização · '+brl(t.fim)+'</span>'+st(t.pf)+'</div>':'')+
   '<div class="sum big"><span>falta pagar</span><span>'+(t.falta>.009?brl(t.falta):'tudo certo ✓')+'</span></div>'+
   ((p.ideias||(p.refs||[]).length)?'<h3>referências</h3>'+(p.ideias?'<p class="txt">'+esc(p.ideias)+'</p>':'')+
-    ((p.refs||[]).length?'<div class="thumbs">'+p.refs.map(function(id){var u='/api/img?id='+id+'&t='+encodeURIComponent(t0);return '<a href="'+u+'" target="_blank" rel="noopener noreferrer"><img loading="lazy" alt="referência" src="'+u+'"></a>'}).join('')+'</div>':''):'')+((p.entregues||[]).length?'<h3>o que foi entregue</h3><div class="thumbs">'+p.entregues.map(function(id){var u='/api/img?id='+id+'&t='+encodeURIComponent(t0);return '<a href="'+u+'" target="_blank" rel="noopener noreferrer"><img loading="lazy" alt="entregue" src="'+u+'"></a>'}).join('')+'</div>':'')+'</details>';
+    ((p.refs||[]).length?'<div class="thumbs">'+p.refs.map(function(id){var u='/api/img?id='+id+'&t='+encodeURIComponent(t0);return '<a href="'+u+'" class="lbx"><img loading="lazy" alt="referência" src="'+u+'"></a>'}).join('')+'</div>':''):'')+((p.entregues||[]).length?'<h3>o que foi entregue</h3><div class="thumbs">'+p.entregues.map(function(id){var u='/api/img?id='+id+'&t='+encodeURIComponent(t0);return '<a href="'+u+'" class="lbx"><img loading="lazy" alt="entregue" src="'+u+'"></a>'}).join('')+'</div>':'')+'</details>';
 }
 function fm(x){x=String(x||'').trim();return x?(/^[\d.,]+$/.test(x)?x+'mm':x):'—'}
 function draw(c){
@@ -772,6 +776,23 @@ function draw(c){
     dock.classList.toggle('is-playing', playing);
     if(playing) dock.classList.remove('attention');
   });
+})();
+</script>
+<script>
+(function(){
+  var box,img,cnt,list=[],i=0;
+  function mk(){box=document.createElement('div');box.className='lb';
+    box.innerHTML='<button class="lx" type="button" aria-label="fechar">✕</button><button class="lp" type="button" aria-label="anterior">‹</button><img alt="imagem"><button class="ln" type="button" aria-label="próxima">›</button><div class="lc"></div>';
+    document.body.appendChild(box);img=box.querySelector('img');cnt=box.querySelector('.lc');
+    box.onclick=function(e){if(e.target===box||e.target.className==='lx')fecha()};
+    box.querySelector('.lp').onclick=function(e){e.stopPropagation();vai(-1)};box.querySelector('.ln').onclick=function(e){e.stopPropagation();vai(1)}}
+  function mostra(){img.src=list[i];var m=list.length>1;box.querySelector('.lp').style.display=box.querySelector('.ln').style.display=m?'':'none';cnt.textContent=m?(i+1)+' / '+list.length:''}
+  function vai(d){i=(i+d+list.length)%list.length;mostra()}
+  function fecha(){box.classList.remove('open');img.removeAttribute('src')}
+  document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a.lbx');if(!a)return;e.preventDefault();
+    var g=[].slice.call((a.closest('.thumbs')||document).querySelectorAll('a.lbx'));list=g.map(function(x){return x.href});i=Math.max(0,g.indexOf(a));
+    if(!box)mk();box.classList.add('open');mostra()});
+  document.addEventListener('keydown',function(e){if(!box||!box.classList.contains('open'))return;if(e.key==='Escape')fecha();if(e.key==='ArrowLeft')vai(-1);if(e.key==='ArrowRight')vai(1)});
 })();
 </script>
 </body>
