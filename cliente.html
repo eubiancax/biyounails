@@ -43,6 +43,7 @@ details.card summary{cursor:pointer;list-style:none;display:flex;justify-content
 .tag{font-size:.68rem;padding:3px 12px;border-radius:99px;background:linear-gradient(120deg,var(--accent),var(--primary));color:#fff}
 h3{font-family:Fogthree,Georgia,serif;font-weight:400;font-size:.95rem;margin:20px 0 6px;color:var(--muted-foreground)}
 .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px;margin-top:8px}.thumbs img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;border:1px solid var(--border);display:block}
+.maos{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}.mao{flex:1 1 250px;max-width:320px}.mao h3{text-align:center;font-size:.9rem;margin:6px 0;color:var(--muted-foreground);font-weight:500}.mao .w{position:relative}.mao svg{display:block;width:100%;height:auto}.mao .md{position:absolute;transform:translate(-50%,-50%);font-size:.72rem;font-weight:700;color:#8a3d68;pointer-events:none}.mao .dl{position:absolute;transform:translate(-50%,-50%);font-size:.58rem;color:#8d8a99;pointer-events:none;white-space:nowrap}
 .mrow{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:8px;padding:8px 0;font-size:.9rem;border-bottom:1px solid var(--border)}.mrow.h{color:var(--muted-foreground);font-size:.75rem;margin-top:12px}.mrow span+span{text-align:center}
 .msg{text-align:center;color:var(--muted-foreground);padding:80px 0}
 .biyou-player-wrap{margin-top:2.5rem;max-width:34rem;margin-left:auto;margin-right:auto;}
@@ -192,6 +193,36 @@ function ped(p,open){
     ((p.refs||[]).length?'<div class="thumbs">'+p.refs.map(function(id){var u='/api/img?id='+id+'&t='+encodeURIComponent(t0);return '<a href="'+u+'" class="lbx"><img loading="lazy" alt="referência" src="'+u+'"></a>'}).join('')+'</div>':''):'')+((p.entregues||[]).length?'<h3>o que foi entregue</h3><div class="thumbs">'+p.entregues.map(function(id){var u='/api/img?id='+id+'&t='+encodeURIComponent(t0);return '<a href="'+u+'" class="lbx"><img loading="lazy" alt="entregue" src="'+u+'"></a>'}).join('')+'</div>':'')+'</details>';
 }
 function fm(x){x=String(x||'').trim();return x?(/^[\d.,]+$/.test(x)?x+'mm':x):'—'}
+var DEDOS=['dedão','indicador','meio','anelar','dedinho'];
+function mao(k,md){
+  var L=k==='e',W=360,H=420,X=function(x){return L?W-x:x},sk='#f7eefb',ln='#e0cdee',nl='#f6b8d8',i,s='',
+  S=.88,T=function(p){return[(p[0]-360)*S+50,(p[1]-30)*S+22]},
+  /* dedos (mão direita, dedão à esquerda): base, ponta, raio na base, raio na ponta */
+  F=[[[496,336],[380,296],35,23],[[482,238],[427,108],24,17],[[514,220],[482,62],24,17.5],[[554,220],[551,72],25,16.5],[[604,228],[617,104],24,14.5]],
+  LB=[],N=[],AW=[.80,.84,.84,.84,.86],AH=[1.2,1.42,1.42,1.42,1.42],
+  fp=function(f){var B0=T(f[0]),E=T(f[1]),dx0=E[0]-B0[0],dy0=E[1]-B0[1],d0=Math.hypot(dx0,dy0),B=[B0[0]-dx0/d0*55,B0[1]-dy0/d0*55],rb=f[2]*S,rt=f[3]*S,dx=E[0]-B[0],dy=E[1]-B[1],d=Math.hypot(dx,dy),ax=dx/d,ay=dy/d,nx=-ay,ny=ax,
+    p=function(a){return a[0].toFixed(1)+' '+a[1].toFixed(1)},k_=1.333*rt,
+    bL=[B[0]+nx*rb,B[1]+ny*rb],bR=[B[0]-nx*rb,B[1]-ny*rb],eL=[E[0]+nx*rt,E[1]+ny*rt],eR=[E[0]-nx*rt,E[1]-ny*rt];
+    return 'M'+p(bL)+'L'+p(eL)+'C'+p([eL[0]+ax*k_,eL[1]+ay*k_])+' '+p([eR[0]+ax*k_,eR[1]+ay*k_])+' '+p(eR)+'L'+p(bR)+'Z'},
+  palm=(function(){var P=function(a){var t=T(a);return t[0].toFixed(1)+' '+t[1].toFixed(1)};
+    return 'M'+P([474,236])+'L'+P([618,236])+'C'+P([634,280])+' '+P([650,350])+' '+P([645,440])+'L'+P([641,482])+'L'+P([545,482])+'C'+P([538,440])+' '+P([508,412])+' '+P([482,380])+'C'+P([462,352])+' '+P([458,300])+' '+P([474,236])+'Z'})(),
+  paths=F.map(fp).concat([palm]);
+  s+=paths.map(function(d){return '<path d="'+d+'" fill="'+ln+'" stroke="'+ln+'" stroke-width="7" stroke-linejoin="round"/>'}).join('');
+  s+=paths.map(function(d){return '<path d="'+d+'" fill="'+sk+'" stroke="'+sk+'" stroke-width="1.5" stroke-linejoin="round"/>'}).join('');
+  /* unhas amendoadas médias */
+  F.forEach(function(f,n){var B=T(f[0]),E=T(f[1]),rt=f[3]*S,dx=E[0]-B[0],dy=E[1]-B[1],d=Math.hypot(dx,dy),ax=dx/d,ay=dy/d,
+    w=rt*2*AW[n],h=w*AH[n],tip=rt-5,cx=E[0]+ax*(tip-h/2),cy=E[1]+ay*(tip-h/2),a=Math.atan2(ax,-ay)*180/Math.PI,
+    hw=w/2,hh=h/2,
+    nd='M'+(-hw*.3)+' '+(-hh*.97)+'C'+(-hw*.15)+' '+(-hh*1.03)+' '+(hw*.15)+' '+(-hh*1.03)+' '+(hw*.3)+' '+(-hh*.97)+'C'+(hw*.7)+' '+(-hh*.7)+' '+hw+' '+(-hh*.3)+' '+hw+' '+(hh*.12)+'C'+hw+' '+(hh*.62)+' '+(hw*.6)+' '+hh+' 0 '+hh+'C'+(-hw*.6)+' '+hh+' '+(-hw)+' '+(hh*.62)+' '+(-hw)+' '+(hh*.12)+'C'+(-hw)+' '+(-hh*.3)+' '+(-hw*.7)+' '+(-hh*.7)+' '+(-hw*.3)+' '+(-hh*.97)+'Z';
+    N[n]=[cx,cy];LB[n]=[E[0],E[1]-rt-11];
+    s+='<g transform="translate('+cx.toFixed(1)+' '+cy.toFixed(1)+') rotate('+a.toFixed(1)+')"><path d="'+nd+'" fill="'+nl+'"/><ellipse cx="'+(-hw*.4).toFixed(1)+'" cy="'+(-hh*.05).toFixed(1)+'" rx="2.2" ry="'+(hh*.38).toFixed(1)+'" fill="#fff" opacity=".55"/></g>'});
+  if(L)s='<g transform="translate('+W+' 0) scale(-1 1)">'+s+'</g>';
+  var h='';
+  for(i=0;i<5;i++){var v=String(((md||{})[k]||[])[i]||'').trim();
+    h+='<span class="md" style="left:'+(X(N[i][0])/W*100).toFixed(2)+'%;top:'+(N[i][1]/H*100).toFixed(2)+'%">'+(v?esc(v):'·')+'</span>'+
+    '<span class="dl" style="left:'+(X(LB[i][0])/W*100).toFixed(2)+'%;top:'+(LB[i][1]/H*100).toFixed(2)+'%">'+DEDOS[i]+'</span>'}
+  return '<div class="mao"><h3>mão '+(L?'esquerda':'direita')+'</h3><div class="w"><svg viewBox="0 0 '+W+' '+H+'" aria-hidden="true">'+s+'</svg>'+h+'</div></div>';
+}
 function draw(c){
   var ps=c.pedidos||[],g=ps.reduce(function(a,p){var x=calcP(p);a.total+=x.total;a.falta+=x.falta;return a},{total:0,falta:0});g.pago=g.total-g.falta;
   var h='<h1>olá, <span>'+esc((c.nome||'').split(' ')[0])+'</span>!</h1><p class="sub">aqui você acompanha os seus pedidos</p>';
@@ -199,7 +230,7 @@ function draw(c){
   h+=ps.length?ps.map(function(p){return ped(p,ps.length===1)}).join(''):'<div class="card"><p class="txt" style="margin:0">seus pedidos vão aparecer aqui 💜</p></div>';
   var md=c.medidasDedos||{e:[],d:[]},tem=[].concat(md.e||[],md.d||[]).some(function(x){return String(x||'').trim()});
   if(tem||c.medidas)h+='<details class="card"><summary><span style="font-family:Fogthree,Georgia,serif;font-size:1.05rem">minhas medidas</span></summary>'+
-    (tem?'<div class="mrow h"><span></span><span>esquerda</span><span>direita</span></div>'+['dedão','indicador','dedo do meio','anelar','dedinho'].map(function(n,i){return '<div class="mrow"><span>'+n+'</span><span>'+esc(fm((md.e||[])[i]))+'</span><span>'+esc(fm((md.d||[])[i]))+'</span></div>'}).join(''):'')+
+    (tem?'<p class="hint" style="margin:10px 0 0;font-size:.75rem;color:var(--muted-foreground)">medida de cada unha, em mm</p><div class="maos">'+mao('e',md)+mao('d',md)+'</div>':'')+
     (c.medidas?'<p class="txt" style="margin-top:12px">'+esc(c.medidas)+'</p>':'')+'</details>';
   h+='<p class="eyebrow" style="margin-top:30px;letter-spacing:.1em">let your nails be like you</p>';
   $('main').innerHTML=h;
