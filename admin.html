@@ -1,20 +1,21 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<script src="https://www.youtube.com/iframe_api" async></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>biyou nails — área master</title>
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
 <style>
 @font-face{font-family:Fogthree;src:url('/fonts/fogthree.woff') format('woff');font-display:swap}
-:root{--radius:1.25rem;--background:oklch(99% .006 95);--foreground:oklch(32% .03 285);--card:oklch(100% 0 0);
+:root{--primary-foreground:oklch(99% .005 300);--shadow-soft:0 18px 40px -24px oklch(40% .08 320 / .45);--radius:1.25rem;--background:oklch(99% .006 95);--foreground:oklch(32% .03 285);--card:oklch(100% 0 0);
 --primary:oklch(74% .11 310);--secondary:oklch(96% .02 320);--muted-foreground:oklch(56% .03 290);
 --accent:oklch(80% .13 350);--border:oklch(93% .015 310);--dot-blue:oklch(78% .1 230);--dot-lilac:oklch(72% .12 300);
 --dot-pink:oklch(76% .16 350);--dot-green:oklch(84% .08 140);--dot-peach:oklch(83% .11 60);--dot-gold:oklch(82% .1 85);
 --shadow:0 18px 40px -24px oklch(40% .08 320 / .45)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--background);color:var(--foreground);font-family:"Manrope",-apple-system,"Segoe UI",Roboto,sans-serif}
-.wrap{max-width:1100px;margin:0 auto;padding:40px 20px 80px}
+.wrap{max-width:1100px;margin:0 auto;padding:40px 20px 150px}
 .eyebrow{text-align:center;font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;color:var(--primary);margin:0 0 8px}
 h1,h2,h3{font-family:Fogthree,Georgia,serif;font-weight:400}
 h1{font-size:2.4rem;text-align:center;margin:0 0 20px;letter-spacing:.02em}
@@ -53,13 +54,112 @@ label{display:block;font-size:.72rem;color:var(--muted-foreground);margin:0 0 4p
 .prow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--border);border-radius:14px;margin-bottom:8px;cursor:pointer;background:var(--secondary);transition:.3s}.prow:hover{border-color:var(--primary)}
 .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-top:14px}.th{position:relative;aspect-ratio:1;border-radius:14px;overflow:hidden;border:1px solid var(--border)}.th img{width:100%;height:100%;object-fit:cover;display:block}.th button{position:absolute;top:4px;right:4px;border:none;background:rgba(255,255,255,.88);border-radius:50%;width:24px;height:24px;cursor:pointer}
 .g4{display:grid;gap:0 12px;grid-template-columns:1fr 1fr}@media(min-width:760px){.g4{grid-template-columns:repeat(4,1fr)}}
-.maos{display:flex;flex-wrap:wrap;gap:24px;justify-content:center}.mao{flex:1 1 240px;max-width:290px}
+.maos{display:flex;flex-wrap:wrap;gap:24px;justify-content:center}.mao{flex:1 1 280px;max-width:340px}
 .mao h3{text-align:center;font-size:.95rem;margin:0 0 6px;color:var(--muted-foreground)}.mao .w{position:relative}.mao svg{display:block;width:100%;height:auto}
-.mao input.md{position:absolute;width:15.5%;min-width:34px;transform:translate(-50%,-50%);padding:5px 2px;text-align:center;font-size:.72rem;border-radius:9px;background:#fff}
+.mao input.md{position:absolute;width:9.5%;min-width:30px;height:10%;transform:translate(-50%,-50%);padding:0;border:none;border-radius:50%;background:transparent;box-shadow:none;text-align:center;font-size:.72rem;font-weight:700;color:#8a3d68}.mao input.md::placeholder{color:#d9a0bd;font-weight:400}.mao input.md:focus{outline:2px solid #c7a3e6;background:rgba(255,255,255,.35)}
 .hide{display:none!important}
+.biyou-player-wrap{margin-top:2.5rem;max-width:34rem;margin-left:auto;margin-right:auto;}
+.biyou-player-card{position:relative;overflow:hidden;border-radius:1.75rem;padding:1.5rem;background:transparent;box-sizing:border-box;transition:transform .4s ease;}
+.biyou-player-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-soft), 0 26px 50px -28px rgba(0,0,0,.4);}
+.biyou-player-glow{display:none;}
+.biyou-player-body{position:relative;display:flex;align-items:center;gap:1.25rem;}
+.biyou-player-main{min-width:0;flex:1 1 auto;}
+.biyou-player-meta{min-width:0;}
+.biyou-player-eyebrow{margin:0;display:flex;align-items:center;gap:.45rem;font-size:10px;text-transform:uppercase;letter-spacing:0.18em;color:color-mix(in oklab, var(--primary) 75%, transparent);}
+.biyou-player-title{margin:4px 0 0 0;font-size:1.15rem;line-height:1.3;color:var(--foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.biyou-eq{display:inline-flex;align-items:flex-end;gap:2px;height:10px;}
+.biyou-eq i{display:block;width:2px;height:3px;border-radius:2px;background:currentColor;animation:biyou-eq 1s ease-in-out infinite;}
+.biyou-eq i:nth-child(2){animation-delay:.2s}
+.biyou-eq i:nth-child(3){animation-delay:.4s}
+@keyframes biyou-eq{0%,100%{height:3px}50%{height:10px}}
+.biyou-player-progress-wrap{margin-top:1.1rem;}
+.biyou-player-times{margin-top:8px;display:flex;align-items:center;justify-content:space-between;}
+.biyou-player-times span{font-size:11px;font-variant-numeric:tabular-nums;color:var(--muted-foreground);}
+.biyou-player-bar{margin-top:1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+.biyou-player-controls{display:flex;align-items:center;gap:.75rem;}
+.biyou-ctrl-btn{display:flex;align-items:center;justify-content:center;width:2.25rem;height:2.25rem;padding:0;border:none;border-radius:999px;background:none;color:color-mix(in oklab, var(--foreground) 65%, transparent);cursor:pointer;transition:color .25s ease, background .25s ease, transform .2s ease;}
+.biyou-ctrl-btn svg{width:18px;height:18px;}
+.biyou-ctrl-btn:hover{color:var(--foreground);background:color-mix(in oklab, var(--secondary) 80%, transparent);}
+.biyou-ctrl-btn:active{transform:scale(.94);}
+  .biyou-ctrl-btn.is-active{color:var(--primary);background:color-mix(in oklab, var(--primary) 18%, transparent);}
+  .biyou-ctrl-btn.is-active::after{content:"";position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--primary);}
+  .biyou-ctrl-btn{position:relative;}
+.biyou-ctrl-btn--play{width:3rem;height:3rem;background:var(--primary);color:var(--primary-foreground);box-shadow:0 10px 22px -12px color-mix(in oklab, var(--primary) 85%, transparent);}
+.biyou-ctrl-btn--play svg{width:22px;height:22px;}
+.biyou-ctrl-btn--play:hover{background:var(--primary);color:var(--primary-foreground);transform:scale(1.06);}
+.biyou-player-volume{display:flex;align-items:center;gap:.6rem;flex:1 1 8rem;min-width:7rem;max-width:11rem;padding:.4rem .7rem;border-radius:999px;background:transparent;}
+.biyou-vol-icon{display:flex;align-items:center;justify-content:center;width:16px;height:16px;padding:0;border:none;background:none;color:var(--muted-foreground);cursor:pointer;flex-shrink:0;transition:color .25s ease;}
+.biyou-vol-icon:hover{color:var(--foreground);}
+.biyou-vol-icon svg{width:14px;height:14px;}
+.biyou-orb{position:relative;width:6.5rem;height:6.5rem;flex-shrink:0;overflow:hidden;border-radius:50%;background:radial-gradient(circle at 35% 30%, var(--dot-lilac), var(--dot-blue) 55%, var(--dot-pink) 100%);animation:biyou-orb-spin 6s linear infinite;animation-play-state:paused;box-shadow:inset 0 0 0 1px rgba(255,255,255,.45), 0 12px 26px -16px rgba(0,0,0,.5);}
+.biyou-orb.spinning{animation-play-state:running;}
+.biyou-orb-groove{position:absolute;border-radius:50%;border:1px solid rgba(255,255,255,.3);}
+.biyou-orb-label{position:absolute;inset:40%;border-radius:50%;background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.18);}
+@keyframes biyou-orb-spin{to{transform:rotate(360deg)}}
+.biyou-track{position:relative;height:6px;border-radius:999px;background:color-mix(in oklab, var(--secondary) 85%, transparent);cursor:pointer;}
+.biyou-track-fill{position:absolute;left:0;top:0;height:100%;border-radius:999px;background:linear-gradient(90deg, var(--dot-lilac), var(--primary));transition:width .3s linear;}
+.biyou-progress-dot{position:absolute;top:50%;width:12px;height:12px;border-radius:50%;background:var(--primary);box-shadow:0 0 0 3px var(--card);transform:translate(-50%,-50%);transition:left .3s linear;}
+.biyou-volume{-webkit-appearance:none;appearance:none;background:transparent;outline:none;height:14px;flex:1 1 auto;min-width:0;margin:0;}
+.biyou-volume::-webkit-slider-runnable-track{background:color-mix(in oklab, var(--foreground) 15%, transparent);height:3px;border-radius:999px;}
+.biyou-volume::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:11px;height:11px;border-radius:50%;background:var(--primary);border:none;cursor:pointer;margin-top:-4px;}
+.biyou-volume::-moz-range-track{background:color-mix(in oklab, var(--foreground) 15%, transparent);height:3px;border-radius:999px;}
+.biyou-volume::-moz-range-thumb{width:11px;height:11px;border-radius:50%;background:var(--primary);border:none;cursor:pointer;}
+@media (max-width:520px){
+  .biyou-player-card{padding:1.25rem;border-radius:1.5rem;}
+  .biyou-player-body{flex-direction:column;align-items:stretch;gap:1rem;}
+  .biyou-orb{width:5rem;height:5rem;margin:0 auto;}
+  .biyou-player-meta{text-align:center;}
+  .biyou-player-eyebrow{justify-content:center;}
+  .biyou-player-bar{justify-content:center;}
+  .biyou-player-volume{max-width:none;flex-basis:100%;}
+  .biyou-player-controls{justify-content:center;width:100%;}
+}
+#biyou-dock{position:fixed;left:1.25rem;bottom:7.5rem;z-index:70;display:flex;flex-direction:column;align-items:flex-start;gap:.5rem;touch-action:none}
+#biyou-dock.is-dragging{transition:none}
+#biyou-dock .biyou-dock-panel{width:min(23rem,calc(100vw - 2rem));overflow:hidden;border-radius:1.5rem;padding:.35rem .25rem .1rem;background:color-mix(in oklab, var(--card) 82%, transparent);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid color-mix(in oklab, var(--primary) 22%, transparent);box-shadow:0 24px 60px -28px rgba(80,50,120,.55);transform-origin:bottom left;transition:opacity .28s ease, transform .28s ease}
+#biyou-dock.is-collapsed .biyou-dock-panel{visibility:hidden;opacity:0;transform:scale(.9) translateY(12px);pointer-events:none;position:absolute;bottom:4.5rem;left:0}
+#biyou-dock .biyou-dock-handle{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.35rem .85rem .1rem;cursor:grab;font-size:10px;letter-spacing:.2em;text-transform:lowercase;color:var(--muted-foreground)}
+#biyou-dock .biyou-dock-handle:active{cursor:grabbing}
+#biyou-dock .biyou-dock-handle button{border:0;background:transparent;color:var(--muted-foreground);cursor:pointer;font-size:15px;line-height:1;padding:.2rem .35rem;border-radius:999px}
+#biyou-dock .biyou-dock-handle button:hover{background:color-mix(in oklab, var(--primary) 14%, transparent);color:var(--foreground)}
+#biyou-dock .biyou-player-wrap{margin:0;max-width:none}
+#biyou-dock .biyou-player-card{padding:.85rem 1rem 1.05rem}
+#biyou-dock .biyou-player-body{gap:.85rem}
+#biyou-dock .biyou-orb{width:64px;height:64px;min-width:64px;flex:none}
+#biyou-dock .biyou-player-card:hover{transform:none;box-shadow:none}
+#biyou-bubble{position:relative;display:flex;align-items:center;gap:.6rem;padding:.45rem .95rem .45rem .5rem;border-radius:999px;border:1px solid color-mix(in oklab, var(--primary) 28%, transparent);background:color-mix(in oklab, var(--card) 88%, transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 16px 36px -20px rgba(80,50,120,.65);cursor:pointer;color:var(--foreground);font-size:12px;letter-spacing:.06em;transition:transform .25s ease, box-shadow .25s ease}
+#biyou-bubble:hover{transform:translateY(-2px) scale(1.03)}
+#biyou-bubble .biyou-bubble-disc{width:38px;height:38px;border-radius:50%;flex:none;background:conic-gradient(from 0deg,#6EC4E8,#c9b6f7,#f19ec2,#6EC4E8);position:relative;box-shadow:inset 0 0 0 3px color-mix(in oklab, var(--card) 70%, transparent)}
+#biyou-bubble .biyou-bubble-disc::after{content:"";position:absolute;inset:42%;border-radius:50%;background:var(--card)}
+#biyou-dock.is-playing #biyou-bubble .biyou-bubble-disc{animation:biyou-disc-spin 4s linear infinite}
+@keyframes biyou-disc-spin{to{transform:rotate(360deg)}}
+#biyou-bubble .biyou-bubble-label{max-width:9.5rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#biyou-dock.is-collapsed.attention #biyou-bubble{animation:biyou-bubble-pulse 2.2s ease-in-out infinite}
+@keyframes biyou-bubble-pulse{0%,100%{box-shadow:0 16px 36px -20px rgba(80,50,120,.65),0 0 0 0 rgba(187,146,245,.5)}55%{box-shadow:0 16px 36px -20px rgba(80,50,120,.65),0 0 0 14px rgba(187,146,245,0)}}
+#biyou-dock:not(.is-collapsed) #biyou-bubble{display:none}
+#biyou-bubble .biyou-bubble-eq{display:flex;align-items:flex-end;gap:2px;height:12px}
+#biyou-bubble .biyou-bubble-eq i{display:block;width:2px;height:4px;border-radius:2px;background:var(--primary)}
+#biyou-dock.is-playing #biyou-bubble .biyou-bubble-eq i{animation:biyou-eq-b .9s ease-in-out infinite}
+#biyou-dock.is-playing #biyou-bubble .biyou-bubble-eq i:nth-child(2){animation-delay:.15s}
+#biyou-dock.is-playing #biyou-bubble .biyou-bubble-eq i:nth-child(3){animation-delay:.3s}
+@keyframes biyou-eq-b{0%,100%{height:4px}50%{height:12px}}
+.biyou-player-slot{margin-top:2rem;display:flex;flex-direction:column;align-items:center;gap:.9rem;text-align:center}
+.biyou-player-slot p{margin:0;font-size:13px;color:var(--muted-foreground)}
+.biyou-player-slot button{border:1px solid color-mix(in oklab, var(--primary) 30%, transparent);background:color-mix(in oklab, var(--primary) 10%, transparent);color:var(--foreground);border-radius:999px;padding:.55rem 1.2rem;font-size:13px;cursor:pointer;transition:transform .2s ease, background .2s ease}
+.biyou-player-slot button:hover{transform:translateY(-1px);background:color-mix(in oklab, var(--primary) 18%, transparent)}
+@media (max-width:640px){#biyou-dock{left:.75rem;bottom:7rem}}
+@media (prefers-reduced-motion:reduce){#biyou-dock *{animation:none !important}}
+.biyou-player-slot{display:none!important}
+body:not(.in) #biyou-dock,body:not(.in) #biyou-bubble{display:none!important}
+.lb{display:none;position:fixed;inset:0;z-index:2147483647;background:rgba(24,18,32,.92);align-items:center;justify-content:center;padding:16px}.lb.open{display:flex}
+.lb img{max-width:100%;max-height:86vh;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.lb button{position:absolute;border:none;cursor:pointer;color:#fff;background:rgba(255,255,255,.16);backdrop-filter:blur(6px);width:42px;height:42px;border-radius:50%;font-size:1.3rem;line-height:1;display:grid;place-items:center}
+.lb .lx{top:14px;right:14px}.lb .lp{left:10px;top:50%;transform:translateY(-50%)}.lb .ln{right:10px;top:50%;transform:translateY(-50%)}.lb .lc{position:absolute;bottom:14px;left:0;right:0;text-align:center;color:#fff;font-size:.78rem;opacity:.8}
+.mao .dl{position:absolute;transform:translate(-50%,-50%);font-size:.58rem;color:#8d8a99;pointer-events:none;white-space:nowrap}
 </style>
 </head>
 <body>
+<div id="pl-src" style="height:0;overflow:hidden"><div class="biyou-player-wrap"><div class="biyou-player-card"><div style="position:absolute;left:-9999px;top:0;width:320px;height:180px;overflow:hidden;opacity:0.01;pointer-events:none;"><div id="biyou-yt-player"></div></div><div class="biyou-player-glow" aria-hidden="true"></div><div class="biyou-player-body"><div id="biyou-orb" class="biyou-orb"><div class="biyou-orb-groove" style="inset:6%"></div><div class="biyou-orb-groove" style="inset:16%"></div><div class="biyou-orb-groove" style="inset:26%"></div><div class="biyou-orb-groove" style="inset:36%"></div><div class="biyou-orb-label"></div></div><div class="biyou-player-main"><div class="biyou-player-meta"><p class="biyou-player-eyebrow"><span class="biyou-eq" aria-hidden="true"><i></i><i></i><i></i></span> tocando agora</p><p id="biyou-yt-title" class="biyou-player-title font-display">carregando playlist...</p></div><div class="biyou-player-progress-wrap"><div id="biyou-yt-progress-bg" class="biyou-track"><div id="biyou-yt-progress-fill" class="biyou-track-fill" style="width:0%"></div><div id="biyou-yt-progress-dot" class="biyou-progress-dot" style="left:0%"></div></div><div class="biyou-player-times"><span id="biyou-yt-time-current">0:00</span><span id="biyou-yt-time-total">0:00</span></div></div><div class="biyou-player-bar"><div class="biyou-player-controls"><button id="biyou-yt-prev" type="button" aria-label="faixa anterior" class="biyou-ctrl-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="11 19 2 12 11 5 11 19"></polygon><polygon points="22 19 13 12 22 5 22 19"></polygon></svg></button><button id="biyou-yt-toggle" type="button" aria-label="tocar" class="biyou-ctrl-btn biyou-ctrl-btn--play"><svg id="biyou-yt-icon-play" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg><svg id="biyou-yt-icon-pause" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect></svg></button><button id="biyou-yt-next" type="button" aria-label="pr&#243;xima faixa" class="biyou-ctrl-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="2 5 11 12 2 19 2 5"></polygon><polygon points="13 5 22 12 13 19 13 5"></polygon></svg></button><button id="biyou-yt-shuffle" type="button" aria-label="ordem aleat&#243;ria" title="ordem aleat&#243;ria" class="biyou-ctrl-btn is-active"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg></button></div><div class="biyou-player-volume"><button id="biyou-yt-mute" type="button" aria-label="mudo" class="biyou-vol-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg></button><input id="biyou-yt-volume" type="range" min="0" max="100" value="30" class="biyou-volume" aria-label="volume" /></div></div></div></div><div class="biyou-suggest-section" style="border-top:1px solid rgba(128,100,140,.12);margin:12px -24px 0;padding:12px 24px 0"><p style="font-size:.65rem;color:var(--muted-foreground);margin:0 0 8px;letter-spacing:.1em;text-transform:uppercase;opacity:.7">indique uma música</p><div style="display:flex;gap:6px"><input id="biyou-suggest-input" type="text" placeholder="nome da música ou artista" style="flex:1;padding:6px 10px;border:1px solid rgba(128,100,140,.15);border-radius:8px;background:rgba(128,100,140,.06);color:var(--foreground);font-size:.78rem;outline:none;font-family:inherit" /><button id="biyou-suggest-btn" type="button" style="padding:6px 14px;border:none;border-radius:8px;background:var(--primary);color:white;font-size:.75rem;cursor:pointer;white-space:nowrap;font-family:inherit;opacity:.85">enviar</button></div><p id="biyou-suggest-msg" style="font-size:.7rem;color:var(--primary);margin:6px 0 0;display:none"></p></div></div></div></div>
 <div id="pw" class="pw"><div class="card">
   <p class="eyebrow">biyou nails</p><h2 style="justify-content:center">área master</h2>
   <p class="hint">digite a senha para continuar</p>
@@ -98,7 +198,7 @@ var brl=function(n){return (n||0).toLocaleString('pt-BR',{style:'currency',curre
 var num=function(v){return parseFloat(String(v).replace(',','.'))||0};
 
 /* ---------- login ---------- */
-function abrir(){$('pw').classList.add('hide');$('app').classList.remove('hide');init()}
+function abrir(){document.body.classList.add('in');$('pw').classList.add('hide');$('app').classList.remove('hide');init()}
 function entrar(){
   fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({senha:$('pwi').value})})
   .then(function(r){if(!r.ok)throw 0;abrir()})
@@ -127,7 +227,7 @@ function pNovo(){return {id:tk().slice(0,8),nome:'',status:'orçamento',dataPedi
 function calc(p){var v=num(p.valor),fr=num(p.frete),m=p.pgto,ct=m==='cartao',all=m==='pix_total'||m==='normal',j=ct?num(p.juros)/100:0,base=m==='pix_total'?v*0.95:v,
   ent=all?base:base*0.4*(1+j),fim=all?fr:(base*0.6+fr)*(1+j),total=ent+fim,pago=(p.ent.pago?ent:0)+(p.fim.pago?fim:0);
   return {valor:v,desc:m==='pix_total'?v-base:0,jp:ct?num(p.juros):0,juros:total-(base+fr),base:base,frete:fr,ent:ent,fim:fim,total:total,pago:pago,saldo:total-pago,tot:all,
-    lab1:m==='pix_total'?'valor total à vista (pix)':m==='normal'?'valor total (sem desconto)':'40% na confirmação (sinal)'}}
+    lab1:m==='pix_total'?'valor total à vista (pix)':m==='normal'?'pagamento integral':'40% na confirmação (sinal)'}}
 function mapPg(p){var g=p.pgto;if(!g||g==='pix')g=p.pix===false?'cartao':'pix_sinal';return ['pix_total','normal','pix_sinal','cartao'].indexOf(g)<0?'pix_sinal':g}
 function normP(p){
   var b=pNovo(),v=p.valor;
@@ -184,17 +284,22 @@ function lista(){
   [].forEach.call(document.querySelectorAll('.card.click'),function(el){el.onclick=function(){perfil(el.dataset.id)}});
 }
 
-/* ---------- mãos com as medidas ---------- */
-var POS=[[176,112,150],[142,62,106],[104,44,88],[66,60,104],[28,96,138]];
+/* ---------- mãos com as medidas (cada unha é um campo) ---------- */
 function mao(k,c){
-  var e=k==='d',X=function(x){return e?200-x:x},sk='#f6ecfa',ln='#e6d3f0',nl='#f7bfdc',s='',i,g=function(w,col){var r='<g stroke="'+col+'" stroke-width="'+w+'" stroke-linecap="round" fill="none">';
-    for(i=1;i<5;i++)r+='<line x1="'+X(POS[i][0])+'" y1="'+(POS[i][1]+16)+'" x2="'+X(POS[i][0])+'" y2="150"/>';return r+'<line x1="'+X(162)+'" y1="176" x2="'+X(180)+'" y2="128"/></g>'},px=e?31:15;
-  s+=g(33,ln)+'<rect x="'+px+'" y="125" width="154" height="94" rx="40" fill="'+ln+'"/>'+g(30,sk)+'<rect x="'+(px+2)+'" y="127" width="150" height="90" rx="38" fill="'+sk+'"/>';
-  for(i=1;i<5;i++)s+='<rect x="'+(X(POS[i][0])-10)+'" y="'+(POS[i][1]+3)+'" width="20" height="24" rx="9" fill="'+nl+'"/>';
-  s+='<rect x="'+(X(180)-10)+'" y="116" width="20" height="24" rx="9" fill="'+nl+'" transform="rotate('+(e?-20:20)+' '+X(180)+' 128)"/>';
-  for(i=0;i<5;i++)s+='<text x="'+X(i?POS[i][0]:184)+'" y="'+(i?POS[i][1]-8:106)+'" text-anchor="middle" font-size="9" fill="#8d8a99">'+DEDOS[i]+'</text>';
-  var inp='';for(i=0;i<5;i++)inp+='<input class="md" data-md="'+k+':'+i+'" placeholder="mm" inputmode="decimal" aria-label="'+DEDOS[i]+' '+(e?'direita':'esquerda')+'" value="'+esc(c.medidasDedos[k][i])+'" style="left:'+(X(POS[i][0])/2)+'%;top:'+(POS[i][2]/2.3)+'%">';
-  return '<div class="mao"><h3>mão '+(e?'direita':'esquerda')+'</h3><div class="w"><svg viewBox="0 0 200 230" aria-hidden="true">'+s+'</svg>'+inp+'</div></div>';
+  var L=k==='e',W=360,H=400,X=function(x){return L?W-x:x},sk='#f7eefb',ln='#e0cdee',nl='#f6b8d8',i,s='',
+  tr=function(f,w,col){return '<line x1="'+f[0]+'" y1="'+f[1]+'" x2="'+f[2]+'" y2="'+f[3]+'" stroke="'+col+'" stroke-width="'+w+'" stroke-linecap="round"/>'},
+  fs=[[112,290,50,215,42],[132,215,118,100,38],[168,210,166,76,40],[204,214,214,92,38],[238,222,258,134,32]],
+  palm='M104 210H256C262 270 250 320 236 352H124C110 320 98 270 104 210Z',
+  LB=[],N=[];
+  s+=fs.map(function(f){return tr(f,f[4]+6,ln)}).join('')+'<path d="'+palm+'" fill="'+ln+'" stroke="'+ln+'" stroke-width="6" stroke-linejoin="round"/>';
+  s+=fs.map(function(f){return tr(f,f[4],sk)}).join('')+'<path d="'+palm+'" fill="'+sk+'"/>';
+  fs.forEach(function(f,n){var dx=f[0]-f[2],dy=f[1]-f[3],ln_=Math.hypot(dx,dy),cx=f[2]+dx/ln_*4,cy=f[3]+dy/ln_*4,a=Math.atan2(f[2]-f[0],f[1]-f[3])*180/Math.PI,w=f[4];N[n]=[cx,cy];LB[n]=[f[2]+(n?0:-4),f[3]-w/2-13];
+    s+='<g transform="rotate('+a.toFixed(1)+' '+cx.toFixed(1)+' '+cy.toFixed(1)+')"><ellipse cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" rx="'+(w*.4).toFixed(1)+'" ry="'+(w*.5).toFixed(1)+'" fill="'+nl+'"/><ellipse cx="'+(cx-w*.14).toFixed(1)+'" cy="'+(cy-w*.2).toFixed(1)+'" rx="2.4" ry="6" fill="#fff" opacity=".55"/></g>'});
+  if(L)s='<g transform="translate('+W+' 0) scale(-1 1)">'+s+'</g>';
+  var h='';
+  for(i=0;i<5;i++){h+='<input class="md" data-md="'+k+':'+i+'" placeholder="mm" inputmode="decimal" maxlength="5" aria-label="'+DEDOS[i]+' '+(L?'esquerda':'direita')+'" value="'+esc(c.medidasDedos[k][i])+'" style="left:'+(X(N[i][0])/W*100).toFixed(2)+'%;top:'+(N[i][1]/H*100).toFixed(2)+'%">'+
+    '<span class="dl" style="left:'+(X(LB[i][0])/W*100).toFixed(2)+'%;top:'+(LB[i][1]/H*100).toFixed(2)+'%">'+DEDOS[i]+'</span>'}
+  return '<div class="mao"><h3>mão '+(L?'esquerda':'direita')+'</h3><div class="w"><svg viewBox="0 0 '+W+' '+H+'" aria-hidden="true">'+s+'</svg>'+h+'</div></div>';
 }
 
 /* ---------- perfil da cliente ---------- */
@@ -324,14 +429,14 @@ function estrelas(){
 function comprovante(){
   var c=cur,p=curP,t=calc(p),O=location.origin,fd=function(d){return d?d.split('-').reverse().join('/'):''},hoje=new Date().toLocaleDateString('pt-BR'),
     nome=(c.nome||'').trim().split(' ')[0]||'cliente',ok=t.saldo<=0.009&&t.total>0,
-    modo={pix_total:'pix à vista · valor total com 5% de desconto',normal:'pagamento integral · valor normal, sem desconto',pix_sinal:'pix · sinal de 40% + restante e frete',cartao:'cartão de crédito'+(t.jp?' · juros de '+t.jp+'%':'')}[p.pgto]||'',
+    modo={pix_total:'pix à vista · valor total com 5% de desconto',normal:'pagamento integral',pix_sinal:'pix · sinal de 40% + restante e frete',cartao:'cartão de crédito'+(t.jp?' · juros de '+t.jp+'%':'')}[p.pgto]||'',
     L=function(l,v,b){return '<div class="l'+(b?' b':'')+'"><span>'+l+'</span><span>'+v+'</span></div>'},
     R=function(l,v,pg,d){return '<div class="r"><div><b>'+l+'</b><small>'+brl(v)+'</small></div><span class="st'+(pg?' ok':'')+'">'+(pg?'pago'+(d?' em '+fd(d):''):'pendente')+'</span></div>'};
   var h='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>comprovante - '+esc(p.nome||'pedido')+' - '+esc(c.nome)+'</title><style>'+
   "@font-face{font-family:Fogthree;src:url('"+O+"/fonts/fogthree.woff') format('woff')}"+
   '@page{size:A4;margin:0}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}html,body{margin:0}'+
   "body{font-family:'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#4A4E57;background:#fff}"+
-  '.pg{width:210mm;min-height:296mm;padding:9mm 18mm 7mm;display:flex;flex-direction:column;margin:0 auto;background:#fff}'+
+  '@media screen{.pg{width:100%!important;max-width:210mm;min-height:0!important}}@media screen and (max-width:600px){.pg{padding:7mm 3mm 6mm!important}.box{padding:4mm 4.5mm!important}}.pg{width:210mm;min-height:296mm;padding:9mm 18mm 7mm;display:flex;flex-direction:column;margin:0 auto;background:#fff}'+
   '.logo{display:block;height:17mm;width:auto;margin:0 auto 3mm}.ey{text-align:center;font-size:9pt;letter-spacing:.35em;text-transform:uppercase;color:#8d8a99;margin:0}'+
   "h1{font-family:Fogthree,Georgia,serif;font-weight:400;font-size:30pt;text-align:center;margin:3mm 0 1mm;color:#4A4E57}h1 i{font-style:normal;color:#f08fbd}"+
   '.sub{text-align:center;color:#8d8a99;font-size:11pt;margin:0 0 6mm}.box{background:#fff;border:1px solid #efe4f6;border-radius:6mm;padding:4.5mm 7mm;margin-bottom:3.5mm;box-shadow:0 2mm 6mm -3mm rgba(150,110,190,.25)}'+
@@ -367,7 +472,7 @@ function refsDraw(){galDraw('refs','refs');galDraw('entregues','entregues')}
 function galDraw(key,elId){
   var p=curP,el=$(elId);if(!el||!p)return;var l=p[key];
   el.className=l.length?'thumbs':'';
-  el.innerHTML=l.length?l.map(function(id,n){return '<div class="th"><a href="/api/img?id='+id+'" target="_blank" rel="noopener noreferrer"><img loading="lazy" alt="imagem" src="/api/img?id='+id+'"></a><button data-rr="'+n+'" aria-label="remover">✕</button></div>'}).join(''):'<p class="muted" style="margin-top:12px">nenhuma imagem ainda</p>';
+  el.innerHTML=l.length?l.map(function(id,n){return '<div class="th"><a href="/api/img?id='+id+'" class="lbx"><img loading="lazy" alt="imagem" src="/api/img?id='+id+'"></a><button data-rr="'+n+'" aria-label="remover">✕</button></div>'}).join(''):'<p class="muted" style="margin-top:12px">nenhuma imagem ainda</p>';
   [].forEach.call(el.querySelectorAll('[data-rr]'),function(b){b.onclick=function(){if(!confirm('remover esta imagem?'))return;delImg(l.splice(+b.dataset.rr,1)[0]);save();galDraw(key,elId)}});
 }
 function subir(files,key,btnId,elId){
@@ -405,6 +510,594 @@ function init(){
     $('clientes').classList.toggle('hide',b.dataset.t!=='clientes');$('metricas').classList.toggle('hide',b.dataset.t!=='metricas');
     if(b.dataset.t==='metricas')metricas()}});
 }
+})();
+</script>
+<script>
+(function(){
+  var YT_PLAYLIST_ID = 'PLAfsW0Gx9jic';
+  var ytPlayer, ytReady = false, ytTimer = null;
+  var titleEl = document.getElementById('biyou-yt-title');
+  var toggleBtn = document.getElementById('biyou-yt-toggle');
+  var iconPlay = document.getElementById('biyou-yt-icon-play');
+  var iconPause = document.getElementById('biyou-yt-icon-pause');
+  var prevBtn = document.getElementById('biyou-yt-prev');
+  var nextBtn = document.getElementById('biyou-yt-next');
+  var shuffleBtn = document.getElementById('biyou-yt-shuffle');
+  var shuffleOn = true;
+  // se a pessoa ficar mais tempo que isso fora da aba/site, ao voltar
+  // trocamos de música em vez de retomar a mesma faixa/ponto salvo
+  var AWAY_RESET_MS = 20 * 60 * 1000; // 20 minutos
+  // ordem de reprodução controlada pelo site (mais confiável que o
+  // setShuffle()/nextVideo() nativos do player do YouTube, que são
+  // conhecidos por não embaralhar de forma consistente)
+  var playlistIds = [];
+  var playOrder = [];
+  var orderPos = -1;
+  function shuffleArray(arr){
+    for(var i = arr.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+    }
+    return arr;
+  }
+  // monta a ordem de reprodução; se anchorToCurrent=true, mantém a faixa
+  // atual tocando e só reembaralha as próximas
+  function buildOrder(anchorToCurrent){
+    var ids = playlistIds.map(function(_, i){ return i; });
+    if(shuffleOn) shuffleArray(ids);
+    var newPos = 0;
+    if(anchorToCurrent && orderPos > -1 && playOrder.length){
+      var curOriginalIdx = playOrder[orderPos];
+      var foundPos = ids.indexOf(curOriginalIdx);
+      if(shuffleOn){
+        if(foundPos > 0){ ids.splice(foundPos,1); ids.unshift(curOriginalIdx); }
+        newPos = 0;
+      } else {
+        newPos = foundPos > -1 ? foundPos : 0;
+      }
+    }
+    playOrder = ids;
+    orderPos = newPos;
+  }
+  function playAt(pos, autoplay){
+    if(!playOrder.length) return;
+    orderPos = ((pos % playOrder.length) + playOrder.length) % playOrder.length;
+    var vid = playlistIds[playOrder[orderPos]];
+    if(!vid) return;
+    try{
+      if(autoplay){ ytPlayer.loadVideoById(vid); }
+      else { ytPlayer.cueVideoById(vid); }
+    }catch(e){}
+  }
+  function goNext(autoplay){ playAt(orderPos + 1, autoplay); }
+  function goPrev(autoplay){ playAt(orderPos - 1, autoplay); }
+  var progressBg = document.getElementById('biyou-yt-progress-bg');
+  var progressFill = document.getElementById('biyou-yt-progress-fill');
+  var progressDot = document.getElementById('biyou-yt-progress-dot');
+  var timeCurrent = document.getElementById('biyou-yt-time-current');
+  var timeTotal = document.getElementById('biyou-yt-time-total');
+  var orbEl = document.getElementById('biyou-orb');
+
+  function fmt(s){ s = Math.floor(s||0); var m = Math.floor(s/60); var r = s%60; return m+':'+(r<10?'0':'')+r; }
+
+  function createPlayer(){
+    if(ytPlayer) return;
+    if(!(window.YT && window.YT.Player)) return;
+    if(!document.getElementById('biyou-yt-player')) return;
+    ytPlayer = new YT.Player('biyou-yt-player', {
+      height: '180', width: '320',
+      playerVars: { listType: 'playlist', list: YT_PLAYLIST_ID, autoplay: 0, controls: 0, playsinline: 1, rel: 0, enablejsapi: 1, origin: window.location.origin },
+      events: { onReady: onPlayerReady, onStateChange: onPlayerStateChange, onError: onPlayerError }
+    });
+  }
+
+  // a API do YouTube dispara este callback uma unica vez; se ela carregar antes
+  // deste script, o callback se perde e o player fica "carregando" para sempre.
+  // por isso tambem verificamos por conta propria se a API ja esta disponivel.
+  var prevApiReady = window.onYouTubeIframeAPIReady;
+  window.onYouTubeIframeAPIReady = function(){
+    if(typeof prevApiReady === 'function'){ try{ prevApiReady(); }catch(e){} }
+    createPlayer();
+  };
+
+  (function bootstrapYT(){
+    if(window.YT && window.YT.Player){ createPlayer(); return; }
+    var existing = document.querySelector('script[src*="youtube.com/iframe_api"]');
+    if(!existing){
+      var tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      document.head.appendChild(tag);
+    }
+    var tries = 0;
+    var poll = setInterval(function(){
+      tries++;
+      if(window.YT && window.YT.Player){ clearInterval(poll); createPlayer(); }
+      else if(tries > 80){
+        clearInterval(poll);
+        if(titleEl) titleEl.textContent = 'não consegui carregar a playlist';
+      }
+    }, 80);
+  })();
+
+
+  function onPlayerError(e){
+    // vídeo bloqueado para incorporação (100/101/150) -> pula para o próximo
+    try{
+      titleEl.textContent = 'trocando de faixa...';
+      setTimeout(function(){ try{ goNext(true); }catch(err){} }, 300);
+    }catch(err){}
+  }
+
+  function onPlayerReady(){
+    ytReady = true;
+    window.biyouPlayer = ytPlayer;
+    var vol = document.getElementById('biyou-yt-volume');
+    var startVol = vol ? parseInt(vol.value, 10) : 30;
+    try{ ytPlayer.unMute(); ytPlayer.setVolume(startVol); }catch(e){}
+
+    // pega a lista de vídeos da playlist e monta nossa própria ordem
+    // (embaralhada, se shuffleOn), já que o embaralhamento nativo do
+    // player do YouTube é pouco confiável entre navegadores
+    try{ playlistIds = ytPlayer.getPlaylist ? (ytPlayer.getPlaylist() || []) : []; }catch(e){ playlistIds = []; }
+    buildOrder(false);
+    if(shuffleBtn){
+      shuffleBtn.classList.toggle('is-active', shuffleOn);
+      shuffleBtn.setAttribute('aria-pressed', shuffleOn ? 'true' : 'false');
+      shuffleBtn.setAttribute('title', shuffleOn ? 'ordem aleatória: ativada' : 'ordem aleatória: desativada');
+    }
+
+    // sorteia a faixa inicial (sem tocar) para variar a cada visita
+    var savedNow = readSaved();
+    // se o estado salvo for de muito tempo atras, tratamos como se nao
+    // houvesse estado salvo: sorteia uma faixa nova em vez de retomar
+    var awayTooLong = !!(savedNow && savedNow.v && savedNow.at && (Date.now() - savedNow.at) > AWAY_RESET_MS);
+    if((!(savedNow && savedNow.v) || awayTooLong) && playlistIds.length > 1){
+      playAt(0, false);
+      setTimeout(updateTitle, 800);
+    } else {
+      updateTitle();
+    }
+
+    if(toggleBtn) toggleBtn.classList.add('needs-start');
+    if(titleEl && titleEl.textContent === 'carregando playlist...'){
+      titleEl.textContent = 'biyou playlist \u2014 toque no play';
+    }
+    restoreSaved(startVol, savedNow, awayTooLong);
+    document.dispatchEvent(new CustomEvent('biyou:player-ready'));
+  }
+
+  // ---- continuidade entre paginas / recarregamentos ----
+  var SAVE_KEY = 'biyou-player-state';
+  function readSaved(){
+    try{ return JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); }catch(e){ return null; }
+  }
+  var lastKnownPlaying = false;
+  var userPaused = false;
+  var lastSaveAt = 0;
+  var savePending = false;
+  // no mobile, escrever no localStorage a cada frame causa travadas.
+  // por isso a gravacao normal e throttled e roda em tempo ocioso;
+  // saveState(true) grava na hora (ao sair da pagina/esconder a aba).
+  function saveState(force){
+    if(!ytReady) return;
+    if(force !== true){
+      if(Date.now() - lastSaveAt < 900) return;
+      if(savePending) return;
+      savePending = true;
+      var idle = window.requestIdleCallback || function(fn){ return setTimeout(fn, 0); };
+      idle(function(){ savePending = false; writeState(); });
+      return;
+    }
+    writeState();
+  }
+  function writeState(){
+    if(!ytReady) return;
+    lastSaveAt = Date.now();
+    try{
+      var d = ytPlayer.getVideoData ? ytPlayer.getVideoData() : null;
+      var st = ytPlayer.getPlayerState ? ytPlayer.getPlayerState() : -1;
+      if(st === 1 || st === 2) lastKnownPlaying = (st === 1);
+      localStorage.setItem(SAVE_KEY, JSON.stringify({
+        v: d && d.video_id ? d.video_id : null,
+        t: ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0,
+        // buffering (3) durante a troca de aba nao significa pausa do usuario
+        playing: st === 1 || (st === 3 && lastKnownPlaying),
+        vol: ytPlayer.getVolume ? ytPlayer.getVolume() : 30,
+        at: Date.now()
+      }));
+    }catch(e){}
+  }
+  window.biyouSavePlayerState = saveState;
+  window.addEventListener('pagehide', function(){ saveState(true); });
+  window.addEventListener('beforeunload', function(){ saveState(true); });
+  // mobile: iOS/Android muitas vezes nao disparam beforeunload/pagehide,
+  // entao salvamos ao esconder a aba, ao congelar e ao trocar de app.
+  // ao voltar para a aba, retomamos do ponto onde o audio parou (sem seek,
+  // para nao gerar recarregamento nem pulo de trecho).
+  var hiddenAt = 0;
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === 'hidden'){ hiddenAt = Date.now(); saveState(true); return; }
+    if(!ytReady) return;
+    // ficou muito tempo fora da aba: troca de musica em vez de retomar
+    var awayMs = hiddenAt ? (Date.now() - hiddenAt) : 0;
+    if(awayMs > AWAY_RESET_MS){
+      hiddenAt = 0;
+      var wasPlaying = !userPaused && lastKnownPlaying;
+      try{ goNext(wasPlaying); }catch(e){}
+      setTimeout(updateTitle, 400);
+      return;
+    }
+    if(userPaused || !lastKnownPlaying) return;
+    try{ if(ytPlayer.getPlayerState() !== 1) ytPlayer.playVideo(); }catch(e){}
+    setTimeout(function(){
+      if(userPaused) return;
+      try{ if(ytPlayer.getPlayerState() !== 1) ytPlayer.playVideo(); }catch(e){}
+    }, 500);
+  });
+  window.addEventListener('freeze', function(){ saveState(true); });
+  window.addEventListener('blur', function(){ saveState(true); });
+  // rotacao de tela nao deve interromper o audio
+  window.addEventListener('orientationchange', function(){
+    saveState(true);
+    setTimeout(function(){
+      if(!ytReady || userPaused) return;
+      try{ if(lastKnownPlaying && ytPlayer.getPlayerState() !== 1) ytPlayer.playVideo(); }catch(e){}
+    }, 400);
+  });
+  document.addEventListener('click', function(ev){
+    var a = ev.target && ev.target.closest ? ev.target.closest('a[href]') : null;
+    if(a && !a.target && a.getAttribute('href') && a.getAttribute('href').charAt(0) !== '#') saveState(true);
+  }, true);
+  document.addEventListener('submit', function(){ saveState(true); }, true);
+  // volta do cache do navegador: retoma de onde parou
+  window.addEventListener('pageshow', function(ev){
+    if(!ev.persisted || !ytReady) return;
+    try{
+      var sv = readSaved();
+      if(sv && sv.playing && ytPlayer.getPlayerState() !== 1){ ytPlayer.unMute(); ytPlayer.playVideo(); }
+    }catch(e){}
+  });
+
+  function restoreSaved(startVol, savedNow, skipTrack){
+    var saved = savedNow || readSaved();
+    if(!saved || !saved.v) return;
+    try{
+      if(typeof saved.vol === 'number'){
+        ytPlayer.setVolume(saved.vol);
+        var volEl = document.getElementById('biyou-yt-volume');
+        if(volEl) volEl.value = saved.vol;
+      }
+      // ficou muito tempo fora: nao retoma a mesma faixa/ponto, so o volume
+      if(skipTrack) return;
+      var origIdx = playlistIds.indexOf(saved.v);
+      var start = Math.max(0, (saved.t || 0) - 0.25);
+      // compensa o tempo que a pagina levou para carregar, para a musica
+      // continuar exatamente de onde estava (sem repetir nem pular trecho)
+      if(saved.playing && saved.at){
+        var gap = (Date.now() - saved.at) / 1000;
+        if(gap > 0 && gap < 20) start = Math.max(0, (saved.t || 0) + gap - 0.25);
+      }
+      if(origIdx > -1){
+        var pos = playOrder.indexOf(origIdx);
+        if(pos > -1) orderPos = pos;
+      }
+      if(saved.playing){ ytPlayer.loadVideoById({ videoId: saved.v, startSeconds: start }); }
+      else { ytPlayer.cueVideoById({ videoId: saved.v, startSeconds: start }); }
+      if(saved.playing){
+        lastKnownPlaying = true;
+        try{ ytPlayer.unMute(); }catch(e){}
+        try{ ytPlayer.playVideo(); }catch(e){}
+        setTimeout(function(){ try{ if(ytPlayer.getPlayerState() !== 1) ytPlayer.playVideo(); }catch(e){} }, 250);
+        // mobile: sem gesto do usuario o audio pode ser bloqueado.
+        // a faixa fica pronta no ponto certo e retoma no primeiro toque.
+        setTimeout(function(){
+          try{
+            if(ytPlayer.getPlayerState() === 1) return;
+            if(toggleBtn) toggleBtn.classList.add('needs-start');
+            if(titleEl) titleEl.textContent = 'toque na tela para continuar';
+            var evts = ['pointerdown','touchend','click','keydown','scroll'];
+            var resume = function(){
+              evts.forEach(function(n){ document.removeEventListener(n, resume, true); });
+              try{ ytPlayer.unMute(); ytPlayer.setVolume(saved.vol || startVol || 30); ytPlayer.playVideo(); }catch(e){}
+              setTimeout(updateTitle, 600);
+            };
+            evts.forEach(function(n){ document.addEventListener(n, resume, true); });
+          }catch(e){}
+        }, 900);
+      }
+      setTimeout(updateTitle, 900);
+    }catch(e){}
+  }
+
+  function updateTitle(){
+    try{
+      var data = ytPlayer.getVideoData();
+      titleEl.textContent = (data && data.title) ? data.title : 'biyou playlist';
+    }catch(e){}
+  }
+
+  var stuckTimer = null;
+  function clearStuck(){ if(stuckTimer){ clearTimeout(stuckTimer); stuckTimer = null; } }
+  function watchStuck(){
+    clearStuck();
+    // se ficar "carregando" por muito tempo, a faixa provavelmente esta
+    // bloqueada para incorporacao: pula para a proxima automaticamente.
+    stuckTimer = setTimeout(function(){
+      try{
+        if(ytPlayer.getPlayerState() !== YT.PlayerState.PLAYING){
+          if(titleEl) titleEl.textContent = 'trocando de faixa...';
+          goNext(true);
+          setTimeout(function(){ try{ ytPlayer.playVideo(); }catch(e){} }, 400);
+        }
+      }catch(e){}
+    }, 9000);
+  }
+
+  function onPlayerStateChange(e){
+    updateTitle();
+    try{ saveState(true); }catch(err){}
+    document.dispatchEvent(new CustomEvent('biyou:player-state', { detail: { state: e.data } }));
+    if(e.data === YT.PlayerState.BUFFERING){ watchStuck(); }
+    else { clearStuck(); }
+    if(e.data === YT.PlayerState.ENDED){ goNext(true); }
+    if(e.data === YT.PlayerState.PLAYING){
+      userPaused = false; lastKnownPlaying = true;
+      iconPlay.style.display = 'none'; iconPause.style.display = '';
+      toggleBtn.setAttribute('aria-label','pausar');
+      orbEl.classList.add('spinning');
+      toggleBtn.classList.remove('needs-start');
+      startTimer();
+    } else {
+      iconPlay.style.display = ''; iconPause.style.display = 'none';
+      toggleBtn.setAttribute('aria-label','tocar');
+      orbEl.classList.remove('spinning');
+      stopTimer();
+    }
+  }
+
+
+  function startTimer(){
+    stopTimer();
+    ytTimer = setInterval(function(){
+      if(!ytReady) return;
+      // aba escondida: nao gastar CPU com UI (evita travadas no mobile)
+      if(document.hidden) return;
+      var cur = ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0;
+      var dur = ytPlayer.getDuration ? ytPlayer.getDuration() : 0;
+      var pct = dur ? (cur/dur*100) : 0;
+      var curTxt = fmt(cur), totTxt = fmt(dur), pctTxt = pct.toFixed(2) + '%';
+      if(timeCurrent.textContent !== curTxt) timeCurrent.textContent = curTxt;
+      if(timeTotal.textContent !== totTxt) timeTotal.textContent = totTxt;
+      if(progressFill.style.width !== pctTxt) progressFill.style.width = pctTxt;
+      if(progressDot.style.left !== pctTxt) progressDot.style.left = pctTxt;
+      saveState();
+    }, 1000);
+  }
+  function stopTimer(){ if(ytTimer){ clearInterval(ytTimer); ytTimer = null; } }
+
+  toggleBtn.addEventListener('click', function(){
+    if(!ytReady){
+      if(titleEl) titleEl.textContent = 'carregando playlist...';
+      createPlayer();
+      return;
+    }
+    var state = ytPlayer.getPlayerState();
+    if(state === YT.PlayerState.PLAYING){ userPaused = true; lastKnownPlaying = false; ytPlayer.pauseVideo(); }
+    else {
+      userPaused = false;
+      try{
+        ytPlayer.unMute();
+        var vol = document.getElementById('biyou-yt-volume');
+        ytPlayer.setVolume(vol ? parseInt(vol.value, 10) : 30);
+      }catch(e){}
+      ytPlayer.playVideo();
+      watchStuck();
+    }
+
+  });
+  // jump=true: abandona a faixa atual e sorteia outra na hora (usado ao
+  // ligar o embaralhar). jump=false: mantém a faixa atual tocando e só
+  // reorganiza a ordem das próximas (usado ao desligar o embaralhar).
+  function applyShuffle(jump){
+    if(shuffleBtn){
+      shuffleBtn.classList.toggle('is-active', shuffleOn);
+      shuffleBtn.setAttribute('aria-pressed', shuffleOn ? 'true' : 'false');
+      shuffleBtn.setAttribute('title', shuffleOn ? 'ordem aleatória: ativada' : 'ordem aleatória: desativada');
+    }
+    if(!ytReady || !playlistIds.length) return;
+    if(jump && shuffleOn){
+      buildOrder(false);
+      var wasPlaying = false;
+      try{ wasPlaying = ytPlayer.getPlayerState() === YT.PlayerState.PLAYING; }catch(e){}
+      playAt(0, wasPlaying);
+    } else {
+      buildOrder(true);
+    }
+  }
+
+  if(shuffleBtn){
+    shuffleBtn.addEventListener('click', function(){
+      shuffleOn = !shuffleOn;
+      applyShuffle(shuffleOn);
+    });
+  }
+
+  prevBtn.addEventListener('click', function(){ if(ytReady) goPrev(true); });
+  nextBtn.addEventListener('click', function(){ if(ytReady) goNext(true); });
+  progressBg.addEventListener('click', function(ev){
+    if(!ytReady) return;
+    var rect = progressBg.getBoundingClientRect();
+    var pct = (ev.clientX - rect.left) / rect.width;
+    var dur = ytPlayer.getDuration ? ytPlayer.getDuration() : 0;
+    if(dur) ytPlayer.seekTo(dur*pct, true);
+  });
+  var volumeInput = document.getElementById('biyou-yt-volume');
+  var muteBtn = document.getElementById('biyou-yt-mute');
+  var lastVolume = volumeInput ? parseInt(volumeInput.value, 10) : 30;
+  if(volumeInput){
+    volumeInput.addEventListener('input', function(){
+      var v = parseInt(volumeInput.value, 10);
+      if(ytReady) ytPlayer.setVolume(v);
+      if(v > 0) lastVolume = v;
+    });
+  }
+  if(muteBtn){
+    muteBtn.addEventListener('click', function(){
+      var v = parseInt(volumeInput.value, 10);
+      if(v > 0){
+        lastVolume = v;
+        volumeInput.value = 0;
+        if(ytReady) ytPlayer.setVolume(0);
+      } else {
+        volumeInput.value = lastVolume || 30;
+        if(ytReady) ytPlayer.setVolume(lastVolume || 30);
+      }
+    });
+  }
+})();
+</script>
+<script>
+(function(){
+  var wrap = document.querySelector('.biyou-player-wrap');
+  if(!wrap) return;
+
+  // deixa um atalho no lugar original da secao da playlist
+  var slot = document.createElement('div');
+  slot.className = 'biyou-player-slot';
+  slot.innerHTML = '<p>o player fica flutuando no canto da tela e continua tocando enquanto voce navega.</p>' +
+                   '<button type="button">abrir o player</button>';
+  wrap.parentNode.insertBefore(slot, wrap);
+
+  var dock = document.createElement('div');
+  dock.id = 'biyou-dock';
+  dock.className = 'is-collapsed attention';
+  var panel = document.createElement('div');
+  panel.className = 'biyou-dock-panel';
+  var handle = document.createElement('div');
+  handle.className = 'biyou-dock-handle';
+  handle.innerHTML = '<span>biyou playlist</span><button type="button" aria-label="minimizar player" title="minimizar">\u2013</button>';
+  panel.appendChild(handle);
+  panel.appendChild(wrap);
+  var bubble = document.createElement('button');
+  bubble.id = 'biyou-bubble';
+  bubble.type = 'button';
+  bubble.setAttribute('aria-label','abrir o player de música');
+  bubble.innerHTML = '<span class="biyou-bubble-disc" aria-hidden="true"></span>' +
+                     '<span class="biyou-bubble-eq" aria-hidden="true"><i></i><i></i><i></i></span>' +
+                     '<span class="biyou-bubble-label">música</span>';
+  dock.appendChild(panel);
+  dock.appendChild(bubble);
+  document.body.appendChild(dock);
+
+  var KEY_UI = 'biyou-player-ui';
+  function readUI(){ try{ return JSON.parse(localStorage.getItem(KEY_UI) || 'null') || {}; }catch(e){ return {}; } }
+  function saveUI(patch){
+    var ui = readUI();
+    for(var k in patch) ui[k] = patch[k];
+    try{ localStorage.setItem(KEY_UI, JSON.stringify(ui)); }catch(e){}
+  }
+
+  function ensureVisible(){
+    // depois de expandir, o painel cresce para baixo e pode sair da tela:
+    // reposiciona o dock para que ele fique inteiro visivel (e um pouco acima).
+    var r = dock.getBoundingClientRect();
+    var maxTop = window.innerHeight - r.height - 16;
+    var maxLeft = window.innerWidth - r.width - 8;
+    var top = Math.min(Math.max(8, r.top), Math.max(8, maxTop));
+    var left = Math.min(Math.max(8, r.left), Math.max(8, maxLeft));
+    if(Math.abs(top - r.top) > 1 || Math.abs(left - r.left) > 1) place(left, top);
+  }
+  function setCollapsed(v){
+    dock.classList.toggle('is-collapsed', v);
+    if(!v){
+      dock.classList.remove('attention');
+      requestAnimationFrame(function(){ ensureVisible(); setTimeout(ensureVisible, 260); });
+    }
+    saveUI({ collapsed: v });
+  }
+  window.addEventListener('resize', function(){ if(!dock.classList.contains('is-collapsed')) ensureVisible(); });
+  bubble.addEventListener('click', function(e){ if(dock.dataset.moved === '1'){ dock.dataset.moved = '0'; return; } setCollapsed(false); });
+  handle.querySelector('button').addEventListener('click', function(){ setCollapsed(true); });
+  slot.querySelector('button').addEventListener('click', function(){
+    setCollapsed(false);
+    dock.animate([{transform:'scale(1)'},{transform:'scale(1.06)'},{transform:'scale(1)'}],{duration:420,easing:'ease-out'});
+  });
+
+  // arrastar o player pela tela
+  var drag = null;
+  handle.addEventListener('pointerdown', startDrag);
+  bubble.addEventListener('pointerdown', startDrag);
+  function startDrag(ev){
+    if(ev.target.closest('button') && ev.currentTarget === handle) return;
+    var r = dock.getBoundingClientRect();
+    drag = { x: ev.clientX, y: ev.clientY, left: r.left, top: r.top, moved: false };
+    dock.setPointerCapture && dock.setPointerCapture(ev.pointerId);
+    ev.currentTarget.setPointerCapture(ev.pointerId);
+    dock.classList.add('is-dragging');
+  }
+  function onMove(ev){
+    if(!drag) return;
+    var dx = ev.clientX - drag.x, dy = ev.clientY - drag.y;
+    if(Math.abs(dx) + Math.abs(dy) > 4) drag.moved = true;
+    var r = dock.getBoundingClientRect();
+    var left = Math.min(Math.max(8, drag.left + dx), window.innerWidth - r.width - 8);
+    var top  = Math.min(Math.max(8, drag.top + dy), window.innerHeight - r.height - 8);
+    place(left, top);
+  }
+  function place(left, top){
+    dock.style.left = left + 'px';
+    dock.style.top = top + 'px';
+    dock.style.right = 'auto';
+    dock.style.bottom = 'auto';
+    saveUI({ left: left, top: top });
+  }
+  function endDrag(){
+    if(!drag) return;
+    dock.dataset.moved = drag.moved ? '1' : '0';
+    drag = null;
+    dock.classList.remove('is-dragging');
+  }
+  window.addEventListener('pointermove', onMove);
+  window.addEventListener('pointerup', endDrag);
+  window.addEventListener('pointercancel', endDrag);
+
+  // estado salvo da interface
+  var ui = readUI();
+  if(ui.collapsed === false) setCollapsed(false);
+
+  // sincroniza titulo/estado com a bolha
+  var titleEl = document.getElementById('biyou-yt-title');
+  var label = bubble.querySelector('.biyou-bubble-label');
+  function syncLabel(){
+    var t = titleEl ? titleEl.textContent.trim() : '';
+    label.textContent = (t && t.indexOf('carregando') === -1) ? t : 'música';
+    bubble.title = label.textContent;
+  }
+  if(titleEl) new MutationObserver(syncLabel).observe(titleEl, { childList:true, characterData:true, subtree:true });
+  syncLabel();
+
+  document.addEventListener('biyou:player-state', function(e){
+    var playing = e.detail && e.detail.state === 1;
+    dock.classList.toggle('is-playing', playing);
+    if(playing) dock.classList.remove('attention');
+  });
+})();
+</script>
+<script>
+(function(){
+  var box,img,cnt,list=[],i=0;
+  function mk(){box=document.createElement('div');box.className='lb';
+    box.innerHTML='<button class="lx" type="button" aria-label="fechar">✕</button><button class="lp" type="button" aria-label="anterior">‹</button><img alt="imagem"><button class="ln" type="button" aria-label="próxima">›</button><div class="lc"></div>';
+    document.body.appendChild(box);img=box.querySelector('img');cnt=box.querySelector('.lc');
+    box.onclick=function(e){if(e.target===box||e.target.className==='lx')fecha()};
+    box.querySelector('.lp').onclick=function(e){e.stopPropagation();vai(-1)};box.querySelector('.ln').onclick=function(e){e.stopPropagation();vai(1)}}
+  function mostra(){img.src=list[i];var m=list.length>1;box.querySelector('.lp').style.display=box.querySelector('.ln').style.display=m?'':'none';cnt.textContent=m?(i+1)+' / '+list.length:''}
+  function vai(d){i=(i+d+list.length)%list.length;mostra()}
+  function fecha(){box.classList.remove('open');img.removeAttribute('src')}
+  document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a.lbx');if(!a)return;e.preventDefault();
+    var g=[].slice.call((a.closest('.thumbs')||document).querySelectorAll('a.lbx'));list=g.map(function(x){return x.href});i=Math.max(0,g.indexOf(a));
+    if(!box)mk();box.classList.add('open');mostra()});
+  document.addEventListener('keydown',function(e){if(!box||!box.classList.contains('open'))return;if(e.key==='Escape')fecha();if(e.key==='ArrowLeft')vai(-1);if(e.key==='ArrowRight')vai(1)});
 })();
 </script>
 </body>
