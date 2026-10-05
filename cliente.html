@@ -44,6 +44,7 @@ details.card summary{cursor:pointer;list-style:none;display:flex;justify-content
 h3{font-family:Fogthree,Georgia,serif;font-weight:400;font-size:.95rem;margin:20px 0 6px;color:var(--muted-foreground)}
 .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px;margin-top:8px}.thumbs img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;border:1px solid var(--border);display:block}
 .maos{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}.mao{flex:1 1 250px;max-width:320px}.mao h3{text-align:center;font-size:.9rem;margin:6px 0;color:var(--muted-foreground);font-weight:500}.mao .w{position:relative}.mao svg{display:block;width:100%;height:auto}.mao .md{position:absolute;transform:translate(-50%,-50%);font-size:.72rem;font-weight:700;color:#8a3d68;pointer-events:none}.mao img{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none;pointer-events:none;filter:drop-shadow(0 10px 18px rgba(150,90,160,.14))}.mao input.md{width:10%!important;height:auto!important;aspect-ratio:1;min-width:30px}
+#sparkles{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
 .mao .dl{position:absolute;transform:translate(-50%,-50%);font-size:.58rem;color:#8d8a99;pointer-events:none;white-space:nowrap}
 .mrow{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:8px;padding:8px 0;font-size:.9rem;border-bottom:1px solid var(--border)}.mrow.h{color:var(--muted-foreground);font-size:.75rem;margin-top:12px}.mrow span+span{text-align:center}
 .msg{text-align:center;color:var(--muted-foreground);padding:80px 0}
@@ -804,6 +805,32 @@ function draw(c){
     var g=[].slice.call((a.closest('.thumbs')||document).querySelectorAll('a.lbx'));list=g.map(function(x){return x.href});i=Math.max(0,g.indexOf(a));
     if(!box)mk();box.classList.add('open');mostra()});
   document.addEventListener('keydown',function(e){if(!box||!box.classList.contains('open'))return;if(e.key==='Escape')fecha();if(e.key==='ArrowLeft')vai(-1);if(e.key==='ArrowRight')vai(1)});
+})();
+
+/* ---------- partículas de brilho no fundo ---------- */
+(function(){
+  var cv=document.createElement('canvas');cv.id='sparkles';cv.setAttribute('aria-hidden','true');document.body.insertBefore(cv,document.body.firstChild);
+  var cx=cv.getContext('2d'),W=0,H=0,dpr=1,P=[],raf=0,
+  reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches,
+  COL=['190,150,235','240,140,190','130,190,240','235,190,90','210,170,245'];
+  function mk(init){return{x:Math.random()*W,y:init?Math.random()*H:H+20,r:Math.random()*2.2+.8,
+    star:Math.random()<.4,c:COL[(Math.random()*COL.length)|0],vy:-(Math.random()*.18+.04),vx:(Math.random()-.5)*.12,
+    ph:Math.random()*6.28,sp:Math.random()*.02+.008,a:Math.random()*.4+.6}}
+  function size(){dpr=Math.min(window.devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*dpr;cv.height=H*dpr;cx.setTransform(dpr,0,0,dpr,0,0);
+    var n=Math.max(26,Math.min(80,Math.round(W*H/22000)));while(P.length<n)P.push(mk(true));P.length=n}
+  function star(x,y,r){cx.beginPath();cx.moveTo(x,y-r*2.6);cx.quadraticCurveTo(x,y,x+r*2.6,y);cx.quadraticCurveTo(x,y,x,y+r*2.6);cx.quadraticCurveTo(x,y,x-r*2.6,y);cx.quadraticCurveTo(x,y,x,y-r*2.6);cx.fill()}
+  function frame(){cx.clearRect(0,0,W,H);
+    for(var i=0;i<P.length;i++){var p=P[i];p.ph+=p.sp;
+      if(!reduce){p.x+=p.vx;p.y+=p.vy;if(p.y<-20||p.x<-20||p.x>W+20)P[i]=p=mk(false),p.x=Math.random()*W}
+      var t=.5+.5*Math.sin(p.ph),al=p.a*(.25+.75*t);
+      var g=cx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*5);g.addColorStop(0,'rgba('+p.c+','+(al*.6)+')');g.addColorStop(1,'rgba('+p.c+',0)');
+      cx.fillStyle=g;cx.beginPath();cx.arc(p.x,p.y,p.r*5,0,6.2832);cx.fill();
+      cx.fillStyle='rgba('+p.c+','+Math.min(1,al+.3)+')';
+      if(p.star)star(p.x,p.y,p.r*(.6+.5*t));else{cx.beginPath();cx.arc(p.x,p.y,p.r*.6,0,6.2832);cx.fill()}}
+    if(!reduce)raf=requestAnimationFrame(frame)}
+  size();frame();
+  addEventListener('resize',function(){size();if(reduce)frame()});
+  document.addEventListener('visibilitychange',function(){if(reduce)return;cancelAnimationFrame(raf);if(!document.hidden)raf=requestAnimationFrame(frame)});
 })();
 </script>
 </body>
