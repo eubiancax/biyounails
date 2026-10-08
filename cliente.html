@@ -212,7 +212,7 @@ var num=function(v){return parseFloat(String(v).replace(',','.'))||0};
 var ETAPAS=['orçamento','aprovado','em produção','enviado','finalizado'];
 var t0=new URLSearchParams(location.search).get('t')||'',t=t0;
 fetch('/api/cliente?t='+encodeURIComponent(t)).then(function(r){if(!r.ok)throw 0;return r.json()}).then(draw)
-.catch(function(){$('main').innerHTML='<p class="msg">este link não está disponível.<br>fale com a biyou no instagram 💜</p>'});
+.catch(function(){location.replace('/acesso.html')});
 
 function calcP(p){var v=num(p.valor),fr=num(p.frete),m=p.pgto,ct=m==='cartao',all=m==='pix_total'||m==='normal',j=ct?num(p.juros)/100:0,base=m==='pix_total'?v*.95:v,ent=all?base:base*.4*(1+j),fim=all?fr:(base*.6+fr)*(1+j),total=ent+fim,pe=(p.ent||{}).pago,pf=(p.fim||{}).pago;
   return {valor:v,desc:m==='pix_total'?v-base:0,jp:ct?num(p.juros):0,juros:total-(base+fr),frete:fr,ent:ent,fim:fim,total:total,tot:all,lab1:m==='pix_total'?'valor total à vista':'pagamento integral',pe:pe,pf:pf,falta:total-(pe?ent:0)-(pf?fim:0)}}
