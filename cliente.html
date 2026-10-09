@@ -165,6 +165,15 @@ h3{font-family:Fogthree,Georgia,serif;font-weight:400;font-size:.95rem;margin:20
 :root[data-theme="dark"] .mao .dl{color:#bdb6cf}
 :root[data-theme="dark"] .mao img{filter:drop-shadow(0 0 22px rgba(205,160,245,.25))}
 :root[data-theme="dark"] .th button{background:rgba(40,30,55,.9);color:#fff}
+.av textarea{width:100%;min-height:84px;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--card);color:var(--foreground);font:inherit;font-size:.9rem;resize:vertical}
+.avs{display:flex;gap:4px;margin:6px 0 12px}
+.avs button{border:none;background:none;font-size:1.7rem;line-height:1;cursor:pointer;color:var(--border);padding:2px}
+.avs button.on{color:var(--dot-peach)}
+.av label.ck{display:flex;gap:8px;align-items:flex-start;font-size:.8rem;color:var(--muted-foreground);margin:12px 0}
+.av .go{border:none;border-radius:99px;padding:10px 22px;background:var(--primary);color:#fff;font:inherit;font-size:.85rem;cursor:pointer}
+.av .go:disabled{opacity:.6;cursor:default}
+.av .avmsg{font-size:.8rem;margin:10px 0 0;color:var(--muted-foreground)}
+.av .pv{display:none;width:96px;height:96px;object-fit:cover;border-radius:14px;border:1px solid var(--border);margin-top:8px}
 </style>
 <style>
 /* Menu superior: mesmas medidas e fonte do index. */
@@ -217,6 +226,52 @@ fetch('/api/cliente?t='+encodeURIComponent(t)).then(function(r){if(!r.ok)throw 0
 function calcP(p){var v=num(p.valor),fr=num(p.frete),m=p.pgto,ct=m==='cartao',all=m==='pix_total'||m==='normal',j=ct?num(p.juros)/100:0,base=m==='pix_total'?v*.95:v,ent=all?base:base*.4*(1+j),fim=all?fr:(base*.6+fr)*(1+j),total=ent+fim,pe=(p.ent||{}).pago,pf=(p.fim||{}).pago;
   return {valor:v,desc:m==='pix_total'?v-base:0,jp:ct?num(p.juros):0,juros:total-(base+fr),frete:fr,ent:ent,fim:fim,total:total,tot:all,lab1:m==='pix_total'?'valor total à vista':'pagamento integral',pe:pe,pf:pf,falta:total-(pe?ent:0)-(pf?fim:0)}}
 var PG={normal:'pagamento integral',pix_total:'pix à vista · valor total com 5% de desconto',pix_sinal:'pix · sinal de 40% + restante e frete',pix:'pix · sinal de 40% + restante e frete',cartao:'cartão de crédito (juros do banco)'};
+function estrelas(n){var s='';for(var k=1;k<=5;k++)s+='<span style="color:'+(k<=n?'var(--dot-peach)':'var(--border)')+'">★</span>';return s}
+function avalHTML(p){
+  if(p.status!=='enviado'&&p.status!=='finalizado')return '';
+  var a=p.avaliacao,u=a&&a.foto?'/api/avaliacoes?img='+a.foto+'&t='+encodeURIComponent(t0):'';
+  if(a&&a.status==='aprovada')return '<h3>sua avaliação</h3><div class="sum"><span style="font-size:1.2rem">'+estrelas(a.nota)+'</span><span>no site 💜</span></div>'+(a.texto?'<p class="txt">'+esc(a.texto)+'</p>':'')+(u?'<div class="thumbs"><a href="'+u+'" class="lbx"><img loading="lazy" alt="sua foto" src="'+u+'"></a></div>':'');
+  return '<h3>'+(a?'sua avaliação (em análise)':'o que você achou?')+'</h3><div class="av" data-pid="'+esc(p.pid)+'" data-nota="'+(a?a.nota:0)+'">'+
+    (a?'<p class="txt">enviada! a biyou vai olhar antes de mostrar no site. você pode mudar abaixo.</p>':'')+
+    '<div class="avs">'+[1,2,3,4,5].map(function(n){return '<button type="button" data-n="'+n+'" aria-label="'+n+' estrelas"'+(a&&n<=a.nota?' class="on"':'')+'>★</button>'}).join('')+'</div>'+
+    '<textarea maxlength="600" placeholder="conta como ficou, se serviu bem, se durou...">'+esc(a?a.texto:'')+'</textarea>'+
+    '<p style="margin:10px 0 4px;font-size:.78rem;color:var(--muted-foreground)">foto das unhas (opcional)</p><input type="file" accept="image/*" class="avf">'+
+    '<img class="pv"'+(u?' src="'+u+'" style="display:block"':'')+' alt="">'+
+    '<label class="ck"><input type="checkbox" class="avc"'+(a&&a.autoriza?' checked':'')+'> posso mostrar minha avaliação e foto no site (só com meu primeiro nome)</label>'+
+    '<button type="button" class="go">'+(a?'atualizar avaliação':'enviar avaliação')+'</button><p class="avmsg"></p></div>';
+}
+function comprime(file){return new Promise(function(ok,no){var im=new Image(),u=URL.createObjectURL(file);
+  im.onload=function(){URL.revokeObjectURL(u);var s=Math.min(1,1200/Math.max(im.width,im.height)),q=.82,c=document.createElement('canvas');
+    c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+    var d=c.toDataURL('image/jpeg',q);while(d.length>850000&&q>.4){q-=.1;d=c.toDataURL('image/jpeg',q)}
+    d.length>900000?no():ok(d)};
+  im.onerror=no;im.src=u})}
+function enviarAval(box,btn){
+  var msg=box.querySelector('.avmsg'),nota=+box.dataset.nota;
+  if(!nota){msg.textContent='escolha de 1 a 5 estrelas';return}
+  btn.disabled=true;msg.textContent='enviando…';
+  fetch('/api/avaliacoes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({t:t0,pid:box.dataset.pid,nota:nota,texto:box.querySelector('textarea').value,autoriza:box.querySelector('.avc').checked,foto:box._foto||undefined})})
+  .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j}})})
+  .then(function(x){if(!x.ok)throw new Error(x.j&&x.j.error||'erro');
+    box.innerHTML='<p class="txt">recebemos sua avaliação 💜 ela aparece no site depois que a biyou aprovar.</p>'})
+  .catch(function(e){btn.disabled=false;msg.textContent=e.message||'não deu certo, tente de novo'});
+}
+function bindAval(){
+  var m=$('main');if(m._av)return;m._av=1;
+  m.addEventListener('click',function(e){
+    var s=e.target.closest&&e.target.closest('.avs button');
+    if(s){var box=s.closest('.av'),n=+s.dataset.n;box.dataset.nota=n;[].forEach.call(box.querySelectorAll('.avs button'),function(b){b.classList.toggle('on',+b.dataset.n<=n)});return}
+    var g=e.target.closest&&e.target.closest('.go');if(g)enviarAval(g.closest('.av'),g);
+  });
+  m.addEventListener('change',function(e){
+    if(!e.target.classList.contains('avf'))return;
+    var box=e.target.closest('.av'),f=e.target.files[0],pv=box.querySelector('.pv'),msg=box.querySelector('.avmsg');
+    if(!f)return;msg.textContent='preparando a foto…';
+    comprime(f).then(function(d){box._foto=d;pv.src=d;pv.style.display='block';msg.textContent=''})
+    .catch(function(){box._foto=null;msg.textContent='não consegui ler essa foto, tente outra'});
+  });
+}
+
 function ped(p,open){
   var t=calcP(p),idx=Math.max(0,ETAPAS.indexOf(p.status)),st=function(ok){return ok?'<b style="color:oklch(60% .12 150)">pago ✓</b>':'<span>pendente</span>'};
   return '<details class="card"'+(open?' open':'')+'><summary><span style="font-family:Fogthree,Georgia,serif;font-size:1.05rem">'+esc(p.nome||'pedido')+'</span><span class="tag">'+esc(p.status)+'</span></summary>'+
@@ -228,7 +283,7 @@ function ped(p,open){
   '<div class="sum"><span>'+(t.tot?t.lab1+' · ':'40% na confirmação · ')+brl(t.ent)+'</span>'+st(t.pe)+'</div>'+(t.fim>.004?'<div class="sum"><span>'+(t.tot?'frete':'restante'+(t.frete?' + frete':''))+' na finalização · '+brl(t.fim)+'</span>'+st(t.pf)+'</div>':'')+
   '<div class="sum big"><span>falta pagar</span><span>'+(t.falta>.009?brl(t.falta):'tudo certo ✓')+'</span></div>'+
   ((p.ideias||(p.refs||[]).length)?'<h3>referências</h3>'+(p.ideias?'<p class="txt">'+esc(p.ideias)+'</p>':'')+
-    ((p.refs||[]).length?'<div class="thumbs">'+p.refs.map(function(id){var u='/api/img?id='+id+'&t='+encodeURIComponent(t0);return '<a href="'+u+'" class="lbx"><img loading="lazy" alt="referência" src="'+u+'"></a>'}).join('')+'</div>':''):'')+((p.entregues||[]).length?'<h3>o que foi entregue</h3><div class="thumbs">'+p.entregues.map(function(id){var u='/api/img?id='+id+'&t='+encodeURIComponent(t0);return '<a href="'+u+'" class="lbx"><img loading="lazy" alt="entregue" src="'+u+'"></a>'}).join('')+'</div>':'')+'</details>';
+    ((p.refs||[]).length?'<div class="thumbs">'+p.refs.map(function(id){var u='/api/img?id='+id+'&t='+encodeURIComponent(t0);return '<a href="'+u+'" class="lbx"><img loading="lazy" alt="referência" src="'+u+'"></a>'}).join('')+'</div>':''):'')+((p.entregues||[]).length?'<h3>o que foi entregue</h3><div class="thumbs">'+p.entregues.map(function(id){var u='/api/img?id='+id+'&t='+encodeURIComponent(t0);return '<a href="'+u+'" class="lbx"><img loading="lazy" alt="entregue" src="'+u+'"></a>'}).join('')+'</div>':'')+avalHTML(p)+'</details>';
 }
 function fm(x){x=String(x||'').trim();return x?(/^[\d.,]+$/.test(x)?x+'mm':x):'—'}
 var DEDOS=['dedão','indicador','meio','anelar','dedinho'];
@@ -251,6 +306,7 @@ function draw(c){
     (c.medidas?'<p class="txt" style="margin-top:12px">'+esc(c.medidas)+'</p>':'')+'</details>';
   h+='<p class="eyebrow" style="margin-top:30px;letter-spacing:.1em">let your nails be like you</p>';
   $('main').innerHTML=h;
+  bindAval();
 }
 
 })();
