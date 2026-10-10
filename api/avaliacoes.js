@@ -21,11 +21,27 @@ async function gravar(chave, valor) {
   if (!r || r.error) throw new Error('o banco não salvou');
 }
 
+// A foto da avaliação tem prioridade. Sem ela, usa somente a primeira foto
+// da entrega do mesmo pedido; referências e dados privados não são publicados.
+function fotoDaAvaliacao(a, clientes) {
+  if (a.foto) return a.foto;
+  const c = clientes.find((x) => x.token === a.token);
+  const pedidos = c && Array.isArray(c.pedidos) ? c.pedidos : [];
+  const p = pedidos.find((x, i) => String(x.id != null ? x.id : i) === String(a.pid));
+  return p && Array.isArray(p.entregues)
+    ? p.entregues.find((id) => /^[a-f0-9]{24}$/.test(String(id))) || null
+    : null;
+}
+async function comFotos(l) {
+  const clientes = l.some((a) => !a.foto) ? await ler('clientes') : [];
+  return l.map((a) => ({ ...a, foto: fotoDaAvaliacao(a, clientes) }));
+}
+
 async function enviarFoto(req, res, id, t) {
   if (!/^[a-f0-9]{24}$/.test(id)) return res.status(404).end();
   let ok = isAuthed(req);
   if (!ok) {
-    const l = await ler('avaliacoes');
+    const l = await comFotos(await ler('avaliacoes'));
     ok = l.some((a) => a.foto === id && ((a.status === 'aprovada' && a.autoriza) || (/^[a-f0-9]{32}$/.test(t) && a.token === t)));
   }
   if (!ok) return res.status(404).end();
@@ -49,11 +65,11 @@ module.exports = async (req, res) => {
         if (!isAuthed(req)) return res.status(401).json({ error: 'faça login no painel' });
         const l = await ler('avaliacoes');
         res.setHeader('Cache-Control', 'no-store');
-        return res.status(200).json(l.map(({ token, ...a }) => a).sort(porData));
+        return res.status(200).json((await comFotos(l)).map(({ token, ...a }) => a).sort(porData));
       }
       const l = (await ler('avaliacoes')).filter((a) => a.status === 'aprovada' && a.autoriza);
       res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=60');
-      return res.status(200).json(l.sort(porData).map((a) => ({ id: a.id, nome: a.nome, nota: a.nota, texto: a.texto, foto: a.foto || null, data: a.data })));
+      return res.status(200).json((await comFotos(l)).sort(porData).map((a) => ({ id: a.id, nome: a.nome, nota: a.nota, texto: a.texto, foto: a.foto || null, data: a.data })));
     }
 
     if (req.method === 'POST') {
