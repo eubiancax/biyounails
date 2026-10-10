@@ -5493,6 +5493,87 @@ header nav a[data-active="true"].w-full{background:color-mix(in oklab, var(--sec
   <meta name="application-name" content="biyou nails">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
+<script>(function(){var r=document.documentElement,t;try{t=localStorage.getItem('biyou-theme')}catch(e){}if(t!=='dark'&&t!=='light')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';r.classList.toggle('biyou-dark',t==='dark');r.setAttribute('data-theme',t)})();</script>
+<style id="biyou-standard-controls">.sh{position:fixed;top:0;left:0;right:0;z-index:40;background:color-mix(in oklab,var(--card) 40%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);font-family:"Blacker Sans","Manrope",system-ui,sans-serif;line-height:1.5;letter-spacing:0}
+.sh-in{box-sizing:border-box;width:100%;max-width:72rem;margin:0 auto;padding:12px 20px;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px}
+.sh-logo{display:flex;align-items:center;min-width:0;overflow:hidden}
+.sh-logo img{height:32px;width:auto;display:block;max-width:100%;object-fit:contain}
+.sh-nav{display:none;align-items:center;gap:28px;justify-self:center}
+.sh-nav a,.sh-mob a{position:relative;font-size:14px;line-height:20px;font-weight:400;letter-spacing:0;color:var(--muted-foreground);text-decoration:none;transition:color .3s;white-space:nowrap}
+.sh-nav a::after{content:"";position:absolute;left:0;bottom:-4px;height:1px;width:0;background:var(--primary);transition:width .3s}
+.sh-nav a:hover::after,.sh-nav a.on::after{width:100%}
+.sh-nav a:hover,.sh-mob a:hover,.sh a.on{color:var(--foreground)}
+.sh-r{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.sh-ic{box-sizing:border-box;width:36px;height:36px;flex-shrink:0;border-radius:50%;border:1px solid var(--border);background:color-mix(in oklab,var(--card) 80%,transparent);display:grid;place-items:center;color:var(--foreground);cursor:pointer;padding:0;font:inherit;text-decoration:none}
+.sh-burger{width:40px;height:40px}
+.sh-mob{display:none;flex-direction:column;align-items:center;gap:4px;padding:16px 20px;border-top:1px solid var(--border);background:var(--card)}
+.sh-mob.open{display:flex}
+.sh-mob a{box-sizing:border-box;width:100%;padding:10px 0;text-align:center}
+@media(min-width:640px){.sh-in{padding-left:32px;padding-right:32px}.sh-logo img{height:40px}}
+@media(min-width:768px){.sh-in{grid-template-columns:1fr auto 1fr}.sh-nav{display:flex}.sh-burger,.sh-mob{display:none!important}}
+
+
+.sh a{margin-top:0}
+
+html.biyou-dark {
+  --background: oklch(22% .02 300);
+  --foreground: oklch(94% .012 300);
+  --card: oklch(27% .025 300);
+  --card-foreground: oklch(94% .012 300);
+  --popover: oklch(27% .025 300);
+  --popover-foreground: oklch(94% .012 300);
+  --primary: oklch(76% .12 310);
+  --primary-foreground: oklch(20% .02 300);
+  --secondary: oklch(32% .03 310);
+  --secondary-foreground: oklch(93% .012 300);
+  --muted: oklch(31% .022 300);
+  --muted-foreground: oklch(76% .02 300);
+  --accent: oklch(80% .13 350);
+  --accent-foreground: oklch(20% .02 300);
+  --border: oklch(40% .025 305);
+  --input: oklch(40% .025 305);
+  --ring: oklch(70% .09 320);
+  --shadow-soft: 0 18px 40px -24px oklch(10% .02 300 / .8);
+  --shadow-lift: 0 28px 60px -28px oklch(8% .02 300 / .9);
+  color-scheme: dark;
+}
+html.biyou-dark #biyou-lava {
+  background: linear-gradient(160deg, #17131F 0%, #1D1526 50%, #141A24 100%) !important;
+}
+html.biyou-dark #biyou-lava::after { background: rgba(16,12,22,.55) !important; }
+html.biyou-dark #biyou-lava .blob { opacity: .3 !important; mix-blend-mode: screen !important; filter: blur(80px) !important; }
+html.biyou-dark h1.font-display,
+html.biyou-dark #biyou-nails-v2 h1.font-display { color: #EDE7F6 !important; }
+html.biyou-dark #biyou-nails-v2 header nav a:hover,
+html.biyou-dark #biyou-nails-v2 header a:hover { color: #C4A6FF !important; }
+html.biyou-dark img[src^="data:image/png"] { filter: none; }
+html.biyou-dark #fotos .photo-marquee img { box-shadow: 0 6px 18px rgba(0,0,0,.45); }
+
+
+.sh a{margin-top:0}
+.sh-in{grid-template-columns:minmax(0,1fr) auto!important}
+.sh-nav{display:none!important}.sh-burger{display:grid!important}
+@media(min-width:1024px){.sh-in{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important}.sh-nav{display:flex!important}.sh-burger,.sh-mob{display:none!important}}
+@media(min-width:768px) and (max-width:1023px){.sh-mob.open{display:flex!important}}
+.biyou-unified-actions{display:flex!important;align-items:center;gap:8px;justify-self:end;grid-column:2;grid-row:1}
+header .biyou-unified-actions>a,header .biyou-unified-actions>button{display:flex!important;align-items:center;justify-content:center;flex:none;width:36px!important;height:36px!important;margin:0!important;padding:0!important}
+header .biyou-unified-actions>button[aria-controls]{width:40px!important;height:40px!important}
+@media(min-width:1024px){.biyou-unified-actions{grid-column:3}header .biyou-unified-actions>button[aria-controls]{display:none!important}}
+header>div:first-child{grid-template-columns:minmax(0,1fr) auto!important}
+@media(min-width:1024px){header>div:first-child{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important}}
+@media(max-width:1023px){header>div:first-child>nav{display:none!important}}
+@media(min-width:1024px){header>div:first-child>nav{display:flex!important}header>div:last-child:not(:first-child){display:none!important}}
+@media(min-width:768px) and (max-width:1023px){header>div:last-child:not(:first-child){display:block!important}}
+#biyou-theme-toggle,#tgl{display:inline-flex!important;margin:0!important;padding:0!important;flex:none;border:1px solid var(--border);border-radius:50%;background:color-mix(in oklab,var(--card) 80%,transparent);color:var(--foreground)}
+#biyou-theme-toggle svg,#tgl svg{width:16px;height:16px}
+html:not(.biyou-dark) #biyou-theme-toggle .icon-sun,html:not(.biyou-dark) #tgl .ic-sun{display:none!important}
+html:not(.biyou-dark) #biyou-theme-toggle .icon-moon,html:not(.biyou-dark) #tgl .ic-moon{display:block!important}
+html.biyou-dark #biyou-theme-toggle .icon-sun,html.biyou-dark #tgl .ic-sun{display:block!important}
+html.biyou-dark #biyou-theme-toggle .icon-moon,html.biyou-dark #tgl .ic-moon{display:none!important}
+html.biyou-dark .sh-logo img{filter:brightness(0) invert(1)}
+.biyou-player-slot{display:none!important}
+#biyou-dock button,#biyou-dock a{margin-top:0;width:auto}
+</style>
 </head>
 <body>
 
@@ -6919,5 +7000,28 @@ document.getElementById('biyou-suggest-input').addEventListener('keydown',functi
   if(e.key==='Enter'){document.getElementById('biyou-suggest-btn').click();}
 });
 </script>
+<script id="biyou-standard-controls-script">(function(){
+function mount(){
+ var root=document.documentElement,header=document.querySelector('header');if(!header)return;
+ var ig=header.querySelector('a[href*="instagram.com"]');
+ var theme=document.getElementById('biyou-theme-toggle')||document.getElementById('tgl');
+ if(!theme){theme=document.createElement('button');theme.id='biyou-theme-toggle';theme.type='button';theme.innerHTML='<svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></svg><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';}
+ theme.setAttribute('aria-label','alternar modo escuro');theme.title='alternar modo escuro';
+ var burger=header.querySelector('#shb')||header.querySelector('button[aria-label="Abrir menu"]')||header.querySelector('button[aria-label="Fechar menu"]');
+ var actions=header.querySelector('.sh-r');
+ if(!actions){actions=document.createElement('div');if(ig){ig.parentNode.insertBefore(actions,ig);}else header.firstElementChild.appendChild(actions);}
+ actions.classList.add('biyou-unified-actions');if(ig)actions.appendChild(ig);actions.appendChild(theme);if(burger)actions.appendChild(burger);
+ function apply(dark){root.classList.toggle('biyou-dark',dark);root.setAttribute('data-theme',dark?'dark':'light');theme.setAttribute('aria-pressed',String(dark));}
+ apply(root.classList.contains('biyou-dark'));
+ theme.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();var dark=!root.classList.contains('biyou-dark');apply(dark);try{localStorage.setItem('biyou-theme',dark?'dark':'light')}catch(err){}},true);
+ window.addEventListener('storage',function(e){if(e.key==='biyou-theme')apply(e.newValue==='dark')});
+ var panel=header.querySelector('#shm')||header.lastElementChild;
+ if(burger&&panel){if(!panel.id)panel.id='biyou-mobile-menu';burger.setAttribute('aria-controls',panel.id);
+ function sync(){var open=panel.classList.contains('open')||panel.classList.contains('max-h-80');burger.setAttribute('aria-expanded',String(open));}
+ sync();burger.addEventListener('click',function(){setTimeout(sync,0)});panel.addEventListener('click',function(){setTimeout(sync,0)});
+ }
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
+})();</script>
 </body>
 </html>
