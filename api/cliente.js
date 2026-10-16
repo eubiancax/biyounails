@@ -2,7 +2,7 @@
 const URL_ = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
 const TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
 const redis = (cmd) => fetch(URL_, { method: 'POST', headers: { Authorization: 'Bearer ' + TOKEN }, body: JSON.stringify(cmd) }).then((x) => x.json());
-const pick = (p) => ({ nome: p.nome, status: p.status, entrega: p.entrega, dataPedido: p.dataPedido, dataEnvio: p.dataEnvio, entregaForma: p.entregaForma, frete: p.frete, freteServico: p.freteServico, juros: p.juros, valor: p.valor, pgto: p.pgto, ideias: p.ideias, refs: p.refs || [], entregues: p.entregues || [], ent: { pago: !!(p.ent && p.ent.pago) }, fim: { pago: !!(p.fim && p.fim.pago) } });
+const pick = (p) => ({ nome: p.nome, status: p.status, entrega: p.entrega, dataPedido: p.dataPedido, dataEnvio: p.dataEnvio, entregaForma: p.entregaForma, frete: p.frete, freteServico: p.freteServico, juros: p.juros, valor: p.valor, pgto: p.pgto, ideias: p.ideias, refs: p.refs || [], entregues: p.entregues || [], andamento: (Array.isArray(p.andamento) ? p.andamento : []).filter((x) => x && /^[a-f0-9]{24}$/.test(x.id)).map((x) => ({ id: x.id, nota: String(x.nota || '').slice(0, 140), data: String(x.data || '') })), ent: { pago: !!(p.ent && p.ent.pago) }, fim: { pago: !!(p.fim && p.fim.pago) } });
 
 module.exports = async (req, res) => {
   const t = String((req.query || {}).t || '');

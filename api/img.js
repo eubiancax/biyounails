@@ -11,7 +11,7 @@ module.exports = async (req, res) => {
   if (!ok && /^[a-f0-9]{32}$/.test(t)) {
     const r = await redis(['GET', 'clientes']);
     const c = (r.result ? JSON.parse(r.result) : []).find((x) => x.token === t && x.acesso !== false);
-    ok = !!c && (c.pedidos || []).some((p) => (p.refs || []).includes(id) || (p.entregues || []).includes(id));
+    ok = !!c && (c.pedidos || []).some((p) => (p.refs || []).includes(id) || (p.entregues || []).includes(id) || (p.andamento || []).some((x) => x && x.id === id));
   }
   if (!ok) return res.status(404).end();
   const { result } = await redis(['GET', 'img:' + id]);
