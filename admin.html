@@ -614,33 +614,102 @@ function totais(){
 
 
 /* ---------- avisar a cliente (texto pronto p/ whatsapp) ---------- */
-function msgStatus(c,p){
-  var nm=(c.nome||'').split(' ')[0]||'oi',set=p.nome||'seu pedido',st=p.status||'';
-  var extra={'orçamento':'separei um orçamento pra você — dá uma olhada na sua área! 💜',
-    'aprovado':'vou começar a produzir em breve! ✨',
-    'em produção':'já estou produzindo com todo carinho ✨',
-    'enviado':'já foi enviado'+(p.dataEnvio?' em '+p.dataEnvio.split('-').reverse().join('/'):'')+'! qualquer coisa me chama 💜',
-    'finalizado':'obrigada pela confiança! se puder, deixa sua avaliação na sua área, ela me ajuda muito 💜'}[st]||'';
-  return 'oi, '+nm+'! 💅 passando pra avisar do seu pedido "'+set+'": agora ele está *'+st+'*. '+extra;
+var EST='˚　　✦　　.　　˚　　.　　✦　　˚　　★⋆.';
+var TOP1='˙⋆✮⋆˚࿔',BOT='⋆˙⟡ ⋆.˚ ⊹₊⟡ ⋆',TOP3='. ݁⋆ ۶ৎ ݁˖ . ݁';
+var MODELOS=['delicada','estrelada','curtinha','animada','bilhetinho'];
+var LK={orc:'veja o orçamento por aqui: {link}',apr:'acompanhe seu pedido por aqui: {link}',prod:'acompanhe seu pedido por aqui: {link}',env:'acompanhe seu pedido por aqui: {link}',fim:'deixa sua avaliação por aqui: {link}'};
+function _m(tipo,l){ // monta as 5 variações de um status
+  var k=LK[tipo];
+  return [
+    TOP1+' oi, {nome}! ࿔˚⋆✮⋆˙\n\n'+l[0]+'\n\n'+k+'\n\n'+BOT,
+    EST+'\n\noi, {nome}! '+l[1]+'\n\n'+k+'\n\n'+EST,
+    TOP3+' oi, {nome}!\n'+l[2]+'\n'+k,
+    '⋆˙⟡ oi, {nome}! ⟡˙⋆\n\n'+l[3]+'\n\n'+k+'\n\n⋆.˚ ⊹₊⟡ ⋆',
+    TOP3+'\n\noi, {nome}, tudo bem? ˙⋆✮⋆˚࿔\n'+l[4]+'\n\n'+k+'\n\n'+BOT
+  ];
+}
+var MSGS={
+  'orçamento':_m('orc',[
+    'separei o orçamento do seu pedido *{pedido}* ✮\né só dar uma olhadinha na sua área e me falar o que achou',
+    'o orçamento do seu *{pedido}* já está pronto ✦\né só olhar na sua área e me dizer se está tudo certinho',
+    'o orçamento do *{pedido}* já está na sua área ⋆\nme conta o que achou',
+    'boas notícias: montei o orçamento do seu *{pedido}* ✮\ndá uma olhada na sua área e, se estiver tudo certo, a gente já começa ࿔',
+    'passando pra te avisar que o orçamento do seu *{pedido}* está pronto\né só abrir a sua área pra ver os detalhes e valores, qualquer dúvida me chama ✮'
+  ]),
+  'aprovado':_m('apr',[
+    'seu pedido *{pedido}* está *aprovado* ✮\nvou começar a produzir em breve e te aviso quando entrar em produção',
+    'o seu *{pedido}* foi *aprovado* ✦\nem breve eu começo a produzir e te mantenho avisada',
+    'o *{pedido}* está *aprovado* ⋆\nem breve começo a produzir',
+    'confirmado! o seu pedido *{pedido}* está *aprovado* ✮\nvou começar a produzir em breve e já te conto cada passo ࿔',
+    'passando pra avisar que o seu *{pedido}* foi *aprovado*\nlogo mais começo a produzir com todo carinho e te aviso quando estiver *em produção* ✮'
+  ]),
+  'em produção':_m('prod',[
+    'seu pedido *{pedido}* agora está *em produção* ✮\nestou fazendo cada detalhe com muito carinho pra ficar perfeito pra você',
+    'tenho novidade do seu *{pedido}* ✦\nele já está *em produção* e está ficando lindo',
+    'o *{pedido}* entrou em *produção* ⋆\nqualquer dúvida é só me chamar',
+    'boas notícias: o seu pedido *{pedido}* está *em produção* ✮\nestou trabalhando nele com muito carinho e logo te aviso quando estiver prontinho ࿔',
+    'passando pra te contar que o seu *{pedido}* já está *em produção*\ncada unha sendo feita com calma e carinho pra chegar linda aí ✮'
+  ]),
+  'enviado':_m('env',[
+    'seu pedido *{pedido}* foi *enviado*{quando} ✮\nagora é só aguardar a chegada, qualquer coisa me chama',
+    'o seu *{pedido}* já foi *enviado*{quando} ✦\nestá a caminho de você, qualquer coisa é só me chamar',
+    'o *{pedido}* foi *enviado*{quando} ⋆\nqualquer coisa me chama',
+    'saiu pra você! o seu pedido *{pedido}* foi *enviado*{quando} ✮\nmal posso esperar pra saber o que você achou ࿔',
+    'passando pra avisar que o seu *{pedido}* já foi *enviado*{quando}\nfiz tudo com muito carinho, espero que chegue e você ame ✮ qualquer coisa me chama'
+  ]),
+  'finalizado':_m('fim',[
+    'seu pedido *{pedido}* está *finalizado* ✮\nobrigada pela confiança! se puder, deixa sua avaliação na sua área, ela me ajuda muito',
+    'o seu *{pedido}* foi *finalizado* ✦\nobrigada por confiar no meu trabalho! me conta o que achou deixando uma avaliação na sua área',
+    'o *{pedido}* está *finalizado* ⋆\nobrigada pela confiança! deixa sua avaliação na sua área?',
+    'pedido *finalizado*! ✮ obrigada por escolher a biyou nails pro seu *{pedido}*\nsua avaliação na sua área me ajuda muito, quando puder deixa lá ࿔',
+    'o seu *{pedido}* está *finalizado*, foi um prazer fazer ele pra você\nse puder, deixa sua avaliação na sua área, ela ajuda muito o meu trabalho ✮'
+  ])
+};
+function msgStatus(c,p,i,semLink){
+  var st=p.status||'',l=MSGS[st],
+    v={nome:(c.nome||'').trim().split(/\s+/)[0]||'',pedido:p.nome||'seu pedido',status:st,
+       quando:(st==='enviado'&&p.dataEnvio)?' em '+p.dataEnvio.split('-').reverse().join('/'):'',
+       link:location.origin+'/cliente.html?t='+(c.token||'')},
+    t=l?l[i%l.length]:'oi, {nome}! passando pra avisar do seu pedido *{pedido}*: agora ele está *{status}*.';
+  if(semLink)t=t.replace(/\n+[^\n]*\{link\}/,'');
+  return t.replace(/\{(\w+)\}/g,function(_,k){return v[k]==null?'':v[k]}).replace(/,\s+,/g,',').replace(/,\s+!/g,'!');
 }
 function telWpp(t){var d=String(t||'').replace(/\D/g,'');if(d.length<10)return '';if(d.indexOf('55')!==0)d='55'+d;return d}
-function avisarCliente(c,p){
-  var m=msgStatus(c,p),tel=telWpp(c.tel);
-  navigator.clipboard.writeText(m).then(function(){var b=$('wpp');if(b){b.textContent='copiado ✓';setTimeout(function(){b.textContent='avisar a cliente'},1500)}});
-  if(tel)window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(m),'_blank');
+function copiarTxt(t,ok){
+  function fb(){var x=document.createElement('textarea');x.value=t;x.style.cssText='position:fixed;opacity:0';document.body.appendChild(x);x.select();try{document.execCommand('copy')}catch(e){}x.remove();ok&&ok()}
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(function(){ok&&ok()},fb);else fb();
 }
-function wppBar(c,p){
+function avisoPainel(c,p,titulo){
   var old=$('wppbar');if(old)old.remove();
-  var tel=telWpp(c.tel),m=msgStatus(c,p);
+  var tel=telWpp(c.tel),idx=0,comLink=true;
+  try{idx=(+localStorage.getItem('biyou_msg_modelo'))||0;comLink=localStorage.getItem('biyou_msg_link')!=='0'}catch(e){}
+  if(idx<0||idx>=MODELOS.length)idx=0;
   var bar=document.createElement('div');bar.id='wppbar';bar.className='card';
-  bar.style.cssText='position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:60;max-width:min(480px,92vw);padding:14px 16px;box-shadow:0 12px 40px oklch(20% .05 300 / .25)';
-  bar.innerHTML='<p class="txt" style="margin:0 0 10px">status atualizado para <b>'+esc(p.status)+'</b> — quer avisar a '+esc((c.nome||'cliente').split(' ')[0])+'?</p>'+
-    '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="pill solid sm" id="wppcp">copiar texto</button>'+(tel?'<button class="pill sm" id="wppab">abrir whatsapp</button>':'')+'<button class="pill sm" id="wppx">agora não</button></div>';
+  bar.style.cssText='position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:60;width:min(520px,94vw);max-height:88vh;overflow:auto;padding:14px 16px;box-shadow:0 12px 40px oklch(20% .05 300 / .25)';
+  bar.innerHTML='<p class="txt" style="margin:0 0 10px">'+titulo+'</p>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">'+MODELOS.map(function(n,k){return '<button class="pill sm" data-mod="'+k+'">'+n+'</button>'}).join('')+'</div>'+
+    '<label style="display:flex;gap:8px;align-items:center;margin:0 0 10px;font-size:.85rem"><input type="checkbox" id="wpplk" style="width:auto"'+(comLink?' checked':'')+'>incluir o link da área da cliente (onde ela vê todos os pedidos)</label>'+
+    '<textarea id="wpptx" style="min-height:170px;margin-bottom:6px;font-size:.9rem"></textarea>'+
+    '<p class="hint" style="margin:0 0 10px">pode editar o texto antes de copiar. o texto vai pelo copiar e colar, por isso os símbolos chegam certinhos no whatsapp</p>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="pill solid sm" id="wppcp">copiar texto</button>'+(tel?'<button class="pill sm" id="wppab">copiar e abrir whatsapp</button>':'')+'<button class="pill sm" id="wppx">fechar</button></div>';
   document.body.appendChild(bar);
-  $('wppcp').onclick=function(){navigator.clipboard.writeText(m).then(function(){$('wppcp').textContent='copiado ✓';setTimeout(function(){bar.remove()},900)})};
-  if(tel)$('wppab').onclick=function(){window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(m),'_blank')};
+  function pinta(k){
+    idx=k;try{localStorage.setItem('biyou_msg_modelo',String(k))}catch(e){}
+    $('wpptx').value=msgStatus(c,p,k,!$('wpplk').checked);
+    [].forEach.call(bar.querySelectorAll('[data-mod]'),function(b){b.classList.toggle('on',+b.dataset.mod===k)});
+  }
+  [].forEach.call(bar.querySelectorAll('[data-mod]'),function(b){b.onclick=function(){pinta(+b.dataset.mod)}});
+  $('wpplk').onchange=function(){try{localStorage.setItem('biyou_msg_link',$('wpplk').checked?'1':'0')}catch(e){}pinta(idx)};
+  pinta(idx);
+  $('wppcp').onclick=function(){copiarTxt($('wpptx').value,function(){$('wppcp').textContent='copiado ✓';setTimeout(function(){var b=$('wppcp');if(b)b.textContent='copiar texto'},1500)})};
+  if(tel)$('wppab').onclick=function(){
+    window.open('https://wa.me/'+tel,'_blank');
+    copiarTxt($('wpptx').value,function(){var b=$('wppab');if(b){b.textContent='copiado ✓ cole na conversa';setTimeout(function(){var x=$('wppab');if(x)x.textContent='copiar e abrir whatsapp'},2500)}});
+  };
   $('wppx').onclick=function(){bar.remove()};
 }
+function avisarCliente(c,p){avisoPainel(c,p,'avisar '+esc((c.nome||'cliente').split(' ')[0])+' sobre o pedido')}
+function wppBar(c,p){avisoPainel(c,p,'status atualizado para <b>'+esc(p.status)+'</b> — quer avisar '+esc((c.nome||'a cliente').split(' ')[0])+'?')}
 
 /* ---------- envio (Melhor Envio) ---------- */
 var FE=['em mãos','retirada','correios','motoboy','uber'];
