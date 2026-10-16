@@ -345,12 +345,14 @@ $('pwb').onclick=entrar;$('pwi').onkeydown=function(e){if(e.key==='Enter')entrar
 
 /* ---------- armazenamento: tenta /api/clientes, senão localStorage ---------- */
 var D=[],cur=null,apiOk=false,timer;
+var ORD=(function(){var o=null;try{o=localStorage.getItem('biyou_ordem')}catch(e){}return o==='az'||o==='mod'?o:'manual'})();
 function load(){
   return fetch('/api/clientes').then(function(r){if(r.status===401){location.reload()}if(!r.ok)throw 0;return r.json()}).then(function(j){apiOk=true;D=j}).catch(function(){
     try{D=JSON.parse(localStorage.getItem('biyou_clientes')||'[]')}catch(e){D=[]}
   });
 }
 function save(){
+  if(cur)cur.mod=Date.now();
   if(!apiOk){try{localStorage.setItem('biyou_clientes',JSON.stringify(D))}catch(e){}}
   if(apiOk){clearTimeout(timer);timer=setTimeout(function(){fetch('/api/clientes',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(D)})},600)}
 }
@@ -390,7 +392,7 @@ function norm(c){
   var md=normMed(c),legacy=!c.medidasDedos&&md.e.concat(md.d).some(Boolean);
   var ps=Array.isArray(c.pedidos)?c.pedidos:((c.itens||c.pagos||c.ideias)?[{nome:'pedido 1',status:c.status,entrega:c.entrega,itens:c.itens,frete:c.frete,pix:c.pix,pagos:c.pagos,ideias:c.ideias,links:c.links}]:[]);
   return {id:String(c.id||tk().slice(0,8)),nome:c.nome||c.name||'',tel:c.tel||c.telefone||c.whatsapp||'',insta:c.insta||c.instagram||'',medidas:legacy?'':(c.medidas||''),medidasAntigo:legacy?String(c.medidas||''):(c.medidasAntigo||''),medidasDedos:md,
-    token:/^[a-f0-9]{32}$/.test(c.token||'')?c.token:tk(),acesso:c.acesso!==false,codigo:/^[A-Z2-9]{8}$/.test(c.codigo||'')?c.codigo:gcod(),pedidos:ps.map(normP)};
+    token:/^[a-f0-9]{32}$/.test(c.token||'')?c.token:tk(),acesso:c.acesso!==false,codigo:/^[A-Z2-9]{8}$/.test(c.codigo||'')?c.codigo:gcod(),pedidos:ps.map(normP),mod:Number(c.mod)||0};
 }
 function gcod(){var A='ABCDEFGHJKMNPQRSTUVWXYZ23456789',a=new Uint8Array(8),r='';crypto.getRandomValues(a);for(var i=0;i<8;i++)r+=A[a[i]%A.length];return r}
 function calcC(c){var r={total:0,pago:0,saldo:0};c.pedidos.forEach(function(p){var t=calc(p);r.total+=t.total;r.pago+=t.pago;r.saldo+=t.saldo});return r}
@@ -398,18 +400,43 @@ function bind(obj,after){[].forEach.call(document.querySelectorAll('[data-k]'),f
 function sumRows(t,ent){return '<div class="sum"><span>total</span><span>'+brl(t.total)+'</span></div>'+(ent?'<div class="sum"><span>entrada sugerida (40%)</span><span>'+brl(t.entrada)+'</span></div>':'')+
   '<div class="sum"><span>já pago</span><span>'+brl(t.pago)+'</span></div><div class="sum big"><span>falta pagar</span><span style="color:'+(t.saldo>0.009?'var(--dot-pink)':'oklch(60% .12 150)')+'">'+brl(t.saldo)+'</span></div>'}
 
+/* ---------- ordem da lista de clientes ---------- */
+function ordenada(){
+  var l=D.slice();
+  if(ORD==='az')l.sort(function(a,b){
+    var x=(a.nome||'').trim(),y=(b.nome||'').trim();
+    if(!x||!y)return x?-1:y?1:0;
+    return x.localeCompare(y,'pt-BR',{sensitivity:'base'})});
+  else if(ORD==='mod')l.sort(function(a,b){return (b.mod||0)-(a.mod||0)});
+  return l;
+}
+function barraOrdem(){
+  if(D.length<2)return '';
+  var o=[['manual','manual'],['az','a – z'],['mod','últimas modificadas']];
+  return '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 18px"><span class="muted">ordem:</span>'+
+    o.map(function(x){return '<button class="pill sm'+(ORD===x[0]?' on':'')+'" data-ord="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div>';
+}
+function setas(c){
+  if(ORD!=='manual'||D.length<2)return '';
+  var i=D.indexOf(c),b='border:none;background:none;cursor:pointer;font-size:1.1rem;padding:2px 8px;color:inherit';
+  return '<div style="display:flex;gap:4px;justify-content:flex-end;margin-top:10px">'+
+    '<button data-mv="-1" data-id="'+c.id+'" title="mover para antes" aria-label="mover para antes" style="'+b+(i===0?';opacity:.25;cursor:default':'')+'">←</button>'+
+    '<button data-mv="1" data-id="'+c.id+'" title="mover para depois" aria-label="mover para depois" style="'+b+(i===D.length-1?';opacity:.25;cursor:default':'')+'">→</button></div>';
+}
+
 /* ---------- lista de clientes ---------- */
 function lista(){
   cur=null;curP=null;
   var h='<div class="top"><p class="muted">'+D.length+' cliente(s)'+(apiOk?'':' · salvo só neste navegador (sem servidor)')+'</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="pill sm" id="sair">sair</button>'+
   '<button class="pill sm" id="exp">exportar backup</button><button class="pill sm" id="imp">importar</button><button class="pill solid sm" id="novo">+ nova cliente</button></div></div>';
   if(!D.length)h+='<div class="card"><p class="muted" style="margin:0">nenhuma cliente ainda — clique em “nova cliente”.</p></div>';
-  h+='<div class="grid three">'+D.map(function(c){var t=calcC(c);
+  h+=barraOrdem();
+  h+='<div class="grid three">'+ordenada().map(function(c){var t=calcC(c);
     return '<div class="card click" data-id="'+c.id+'"><h2 style="font-size:1.25rem">'+esc(c.nome||'sem nome')+'</h2><p class="hint">'+esc(c.insta)+'</p>'+
     '<div class="sum"><span>pedidos</span><span>'+c.pedidos.length+'</span></div><div class="sum"><span>pago</span><span>'+brl(t.pago)+'</span></div>'+
-    '<div class="sum"><span>falta</span><b>'+brl(t.saldo)+'</b></div></div>'}).join('')+'</div>';
+    '<div class="sum"><span>falta</span><b>'+brl(t.saldo)+'</b></div>'+setas(c)+'</div>'}).join('')+'</div>';
   $('clientes').innerHTML=h;
-  $('novo').onclick=function(){var c=norm({nome:'',pedidos:[]});D.unshift(c);save();perfil(c.id)};
+  $('novo').onclick=function(){var c=norm({nome:'',pedidos:[]});c.mod=Date.now();D.unshift(c);save();perfil(c.id)};
   $('sair').onclick=function(){fetch('/api/logout',{method:'POST'}).then(function(){location.reload()})};
   $('exp').onclick=function(){var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(D,null,1)],{type:'application/json'}));a.download='biyou-clientes.json';a.click()};
   $('imp').onclick=function(){var f=document.createElement('input');f.type='file';f.accept='.json,application/json,text/plain';f.onchange=function(){var r=new FileReader();r.onload=function(){
@@ -419,6 +446,12 @@ function lista(){
     l.filter(function(x){return x&&typeof x==='object'}).forEach(function(x){var n=norm(x),i=D.findIndex(function(d){return d.id===n.id});if(i>=0)D[i]=n;else D.push(n)});
     save();lista();alert(l.length+' cliente(s) importada(s)')};r.readAsText(f.files[0])};f.click()};
   [].forEach.call(document.querySelectorAll('.card.click'),function(el){el.onclick=function(){perfil(el.dataset.id)}});
+  [].forEach.call(document.querySelectorAll('[data-ord]'),function(b){b.onclick=function(){ORD=b.dataset.ord;try{localStorage.setItem('biyou_ordem',ORD)}catch(e){}lista()}});
+  [].forEach.call(document.querySelectorAll('[data-mv]'),function(b){b.onclick=function(ev){
+    ev.stopPropagation();
+    var i=D.findIndex(function(x){return x.id===b.dataset.id}),j=i+(+b.dataset.mv);
+    if(i<0||j<0||j>=D.length)return;
+    var t=D[i];D[i]=D[j];D[j]=t;save();lista()}});
 }
 
 /* ---------- mãos com as medidas (cada unha é um campo) ---------- */
