@@ -448,7 +448,7 @@ function ped(p,open){
   '<div class="sum"><span>'+(t.tot?t.lab1+' · ':'40% na confirmação · ')+brl(t.ent)+'</span>'+st(t.pe)+'</div>'+(t.fim>.004?'<div class="sum"><span>'+(t.tot?'frete':'restante'+(t.frete?' + frete':''))+' na finalização · '+brl(t.fim)+'</span>'+st(t.pf)+'</div>':'')+
   '<div class="sum big"><span>falta pagar</span><span>'+(t.falta>.009?brl(t.falta):'tudo certo ✓')+'</span></div>'+
   ((p.ideias||(p.refs||[]).length)?'<h3>referências</h3>'+(p.ideias?'<p class="txt">'+esc(p.ideias)+'</p>':'')+
-    ((p.refs||[]).length?'<div class="thumbs">'+p.refs.map(function(id){var u='/api/img?id='+id+'&t='+encodeURIComponent(t0);return '<a href="'+u+'" class="lbx"><img loading="lazy" alt="referência" src="'+u+'"></a>'}).join('')+'</div>':''):'')+((p.entregues||[]).length?'<h3>o que foi entregue</h3><div class="thumbs">'+p.entregues.map(function(id){var u='/api/img?id='+id+'&t='+encodeURIComponent(t0);return '<a href="'+u+'" class="lbx"><img loading="lazy" alt="entregue" src="'+u+'"></a>'}).join('')+'</div>':'')+avalHTML(p)+'</details>';
+    ((p.refs||[]).length?'<div class="thumbs">'+p.refs.map(function(id){var u='/api/img?id='+id+'&t='+encodeURIComponent(t0);return '<a href="'+u+'" class="lbx"><img loading="lazy" alt="referência" src="'+u+'"></a>'}).join('')+'</div>':''):'')+((p.andamento||[]).length?'<h3>andamento</h3><div class="thumbs">'+p.andamento.map(function(x){var u='/api/img?id='+x.id+'&t='+encodeURIComponent(t0);return '<figure style="margin:0"><a href="'+u+'" class="lbx"><img loading="lazy" alt="andamento" src="'+u+'"></a><figcaption style="font-size:12px;margin-top:4px;line-height:1.3">'+(x.nota?esc(x.nota)+'<br>':'')+'<span class="muted" style="opacity:.7">'+esc((x.data||'').split('-').reverse().join('/'))+'</span></figcaption></figure>'}).join('')+'</div>':'')+((p.entregues||[]).length?'<h3>o que foi entregue</h3><div class="thumbs">'+p.entregues.map(function(id){var u='/api/img?id='+id+'&t='+encodeURIComponent(t0);return '<a href="'+u+'" class="lbx"><img loading="lazy" alt="entregue" src="'+u+'"></a>'}).join('')+'</div>':'')+avalHTML(p)+'</details>';
 }
 function fm(x){x=String(x||'').trim();return x?(/^[\d.,]+$/.test(x)?x+'mm':x):'—'}
 var DEDOS=['dedão','indicador','meio','anelar','dedinho'];
@@ -462,7 +462,14 @@ function mao(k,md){
 }
 function draw(c){
   var ps=c.pedidos||[],g=ps.reduce(function(a,p){var x=calcP(p);a.total+=x.total;a.falta+=x.falta;return a},{total:0,falta:0});g.pago=g.total-g.falta;
+  var novidades=[];
+  try{
+    var vk='biyou-vistos-'+t0,ant=JSON.parse(localStorage.getItem(vk)||'null'),agora={};
+    ps.forEach(function(p){var na=(p.andamento||[]).length;agora[p.pid]=p.status;agora['f'+p.pid]=na;if(ant&&ant[p.pid]){var mud=ant[p.pid]!==p.status,nf=na>(ant['f'+p.pid]||0);if(mud||nf)novidades.push({nome:p.nome,status:mud?p.status:(nf&&na-(ant['f'+p.pid]||0)>1?'fotos novas 📸':'foto nova 📸')})}});
+    localStorage.setItem(vk,JSON.stringify(agora));
+  }catch(e){}
   var h='<h1>olá, <span>'+esc((c.nome||'').split(' ')[0])+'</span>!</h1><p class="sub">aqui você acompanha os seus pedidos</p>';
+  if(novidades.length)h+='<div class="card" style="border:1.5px solid var(--dot-peach)"><h2><span class="dot" style="background:var(--dot-peach)"></span>novidade por aqui ✨</h2>'+novidades.map(function(p){return '<div class="sum"><span>'+esc(p.nome||'pedido')+'</span><span class="tag">'+esc(p.status)+'</span></div>'}).join('')+'</div>';
   if(ps.length>1)h+='<div class="card"><h2><span class="dot" style="background:var(--dot-green)"></span>resumo geral</h2><div class="sum"><span>total dos pedidos</span><span>'+brl(g.total)+'</span></div><div class="sum"><span>já pago</span><span>'+brl(g.pago)+'</span></div><div class="sum big"><span>falta pagar</span><span>'+(g.falta>.009?brl(g.falta):'tudo certo ✓')+'</span></div></div>';
   h+=ps.length?ps.map(function(p){return ped(p,ps.length===1)}).join(''):'<div class="card"><p class="txt" style="margin:0">seus pedidos vão aparecer aqui 💜</p></div>';
   var md=c.medidasDedos||{e:[],d:[]},tem=[].concat(md.e||[],md.d||[]).some(function(x){return String(x||'').trim()});
