@@ -414,15 +414,84 @@ function barraOrdem(){
   if(D.length<2)return '';
   var o=[['manual','manual'],['az','a – z'],['mod','últimas modificadas']];
   return '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 18px"><span class="muted">ordem:</span>'+
-    o.map(function(x){return '<button class="pill sm'+(ORD===x[0]?' on':'')+'" data-ord="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div>';
+    o.map(function(x){return '<button class="pill sm'+(ORD===x[0]?' on':'')+'" data-ord="'+x[0]+'">'+x[1]+'</button>'}).join('')+
+    (ORD==='manual'?'<span class="muted" style="flex-basis:100%">arraste uma cliente e solte em cima de outra para trocar de lugar (no celular: segure um instante e arraste)</span>':'')+'</div>';
 }
-function setas(c){
-  if(ORD!=='manual'||D.length<2)return '';
-  var i=D.indexOf(c),b='border:none;background:none;cursor:pointer;font-size:1.1rem;padding:2px 8px;color:inherit';
-  return '<div style="display:flex;gap:4px;justify-content:flex-end;margin-top:10px">'+
-    '<button data-mv="-1" data-id="'+c.id+'" title="mover para antes" aria-label="mover para antes" style="'+b+(i===0?';opacity:.25;cursor:default':'')+'">←</button>'+
-    '<button data-mv="1" data-id="'+c.id+'" title="mover para depois" aria-label="mover para depois" style="'+b+(i===D.length-1?';opacity:.25;cursor:default':'')+'">→</button></div>';
+/* ---------- arrastar para reordenar (ordem manual) ---------- */
+var arrastou=false,DRAG=null,tmBound=false;
+function armarArrasto(){
+  if(!tmBound){tmBound=true;document.addEventListener('touchmove',function(e){if(DRAG&&DRAG.on&&e.cancelable)e.preventDefault()},{passive:false})}
+  if(ORD!=='manual'||D.length<2)return;
+  [].forEach.call(document.querySelectorAll('.card.click'),function(card){
+    card.addEventListener('pointerdown',function(e){
+      if(DRAG||(e.pointerType==='mouse'&&e.button!==0))return;
+      DRAG={card:card,id:card.dataset.id,x0:e.clientX,y0:e.clientY,s0:window.scrollY,x:e.clientX,y:e.clientY,on:false,over:null,timer:null,auto:null,touch:e.pointerType!=='mouse'};
+      if(DRAG.touch)DRAG.timer=setTimeout(function(){if(DRAG&&!DRAG.on)arrasta()},320);
+      document.addEventListener('pointermove',dragMove);
+      document.addEventListener('pointerup',dragSolta);
+      document.addEventListener('pointercancel',dragFim);
+    });
+  });
 }
+function arrasta(){
+  var s=DRAG.card.style;
+  DRAG.on=true;arrastou=true;clearTimeout(DRAG.timer);
+  s.transition='none';s.position='relative';s.zIndex='50';s.pointerEvents='none';s.opacity='.92';s.boxShadow='0 18px 40px rgba(0,0,0,.25)';s.cursor='grabbing';
+  if(navigator.vibrate)try{navigator.vibrate(15)}catch(e){}
+  DRAG.auto=setInterval(function(){
+    if(!DRAG)return;
+    var h=window.innerHeight,v=DRAG.y<70?-14:DRAG.y>h-70?14:0;
+    if(v)window.scrollBy(0,v);
+    dragPos();
+  },30);
+  dragPos();
+}
+function dragPos(){
+  if(!DRAG||!DRAG.on)return;
+  var dx=DRAG.x-DRAG.x0,dy=DRAG.y-DRAG.y0+(window.scrollY-DRAG.s0);
+  DRAG.card.style.transform='translate('+dx+'px,'+dy+'px) scale(1.03)';
+  var el=document.elementFromPoint(DRAG.x,DRAG.y),t=el&&el.closest?el.closest('.card.click'):null;
+  if(t===DRAG.card)t=null;
+  if(DRAG.over!==t){
+    if(DRAG.over){DRAG.over.style.outline='';DRAG.over.style.outlineOffset=''}
+    if(t){t.style.outline='2px dashed var(--primary)';t.style.outlineOffset='3px'}
+    DRAG.over=t;
+  }
+}
+function dragMove(e){
+  if(!DRAG)return;
+  DRAG.x=e.clientX;DRAG.y=e.clientY;
+  if(!DRAG.on){
+    var d=Math.hypot(e.clientX-DRAG.x0,e.clientY-DRAG.y0);
+    if(DRAG.touch){if(d>8)dragFim()}else if(d>6)arrasta();
+    return;
+  }
+  dragPos();
+}
+function dragFim(){
+  if(!DRAG)return;
+  var d=DRAG,s=d.card.style,was=d.on;
+  clearTimeout(d.timer);clearInterval(d.auto);
+  document.removeEventListener('pointermove',dragMove);
+  document.removeEventListener('pointerup',dragSolta);
+  document.removeEventListener('pointercancel',dragFim);
+  s.transform='';s.transition='';s.position='';s.zIndex='';s.pointerEvents='';s.opacity='';s.boxShadow='';s.cursor='grab';
+  if(d.over){d.over.style.outline='';d.over.style.outlineOffset=''}
+  DRAG=null;
+  if(was)setTimeout(function(){arrastou=false},150);
+  return d;
+}
+function dragSolta(){
+  var d=DRAG;if(!d)return;
+  var over=d.over,id=d.id,was=d.on;
+  dragFim();
+  if(!was||!over)return;
+  var i=D.findIndex(function(x){return x.id===id}),j=D.findIndex(function(x){return x.id===over.dataset.id});
+  if(i<0||j<0||i===j)return;
+  var c=D.splice(i,1)[0];D.splice(j,0,c);
+  save();lista();
+}
+
 
 /* ---------- lista de clientes ---------- */
 function lista(){
@@ -432,9 +501,9 @@ function lista(){
   if(!D.length)h+='<div class="card"><p class="muted" style="margin:0">nenhuma cliente ainda — clique em “nova cliente”.</p></div>';
   h+=barraOrdem();
   h+='<div class="grid three">'+ordenada().map(function(c){var t=calcC(c);
-    return '<div class="card click" data-id="'+c.id+'"><h2 style="font-size:1.25rem">'+esc(c.nome||'sem nome')+'</h2><p class="hint">'+esc(c.insta)+'</p>'+
+    return '<div class="card click" data-id="'+c.id+'"'+(ORD==='manual'&&D.length>1?' style="user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:grab"':'')+'><h2 style="font-size:1.25rem">'+esc(c.nome||'sem nome')+'</h2><p class="hint">'+esc(c.insta)+'</p>'+
     '<div class="sum"><span>pedidos</span><span>'+c.pedidos.length+'</span></div><div class="sum"><span>pago</span><span>'+brl(t.pago)+'</span></div>'+
-    '<div class="sum"><span>falta</span><b>'+brl(t.saldo)+'</b></div>'+setas(c)+'</div>'}).join('')+'</div>';
+    '<div class="sum"><span>falta</span><b>'+brl(t.saldo)+'</b></div>'+'</div>'}).join('')+'</div>';
   $('clientes').innerHTML=h;
   $('novo').onclick=function(){var c=norm({nome:'',pedidos:[]});c.mod=Date.now();D.unshift(c);save();perfil(c.id)};
   $('sair').onclick=function(){fetch('/api/logout',{method:'POST'}).then(function(){location.reload()})};
@@ -445,13 +514,9 @@ function lista(){
     if(!l||!l.length)return alert('o arquivo está vazio ou num formato que não reconheço');
     l.filter(function(x){return x&&typeof x==='object'}).forEach(function(x){var n=norm(x),i=D.findIndex(function(d){return d.id===n.id});if(i>=0)D[i]=n;else D.push(n)});
     save();lista();alert(l.length+' cliente(s) importada(s)')};r.readAsText(f.files[0])};f.click()};
-  [].forEach.call(document.querySelectorAll('.card.click'),function(el){el.onclick=function(){perfil(el.dataset.id)}});
+  [].forEach.call(document.querySelectorAll('.card.click'),function(el){el.onclick=function(){if(arrastou)return;perfil(el.dataset.id)}});
   [].forEach.call(document.querySelectorAll('[data-ord]'),function(b){b.onclick=function(){ORD=b.dataset.ord;try{localStorage.setItem('biyou_ordem',ORD)}catch(e){}lista()}});
-  [].forEach.call(document.querySelectorAll('[data-mv]'),function(b){b.onclick=function(ev){
-    ev.stopPropagation();
-    var i=D.findIndex(function(x){return x.id===b.dataset.id}),j=i+(+b.dataset.mv);
-    if(i<0||j<0||j>=D.length)return;
-    var t=D[i];D[i]=D[j];D[j]=t;save();lista()}});
+  armarArrasto();
 }
 
 /* ---------- mãos com as medidas (cada unha é um campo) ---------- */
