@@ -359,7 +359,7 @@ function save(){
 var curP=null;
 function tk(){var a=new Uint8Array(16);crypto.getRandomValues(a);return Array.prototype.map.call(a,function(b){return ('0'+b.toString(16)).slice(-2)}).join('')}
 function hoje(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
-function pNovo(){return {id:tk().slice(0,8),nome:'',status:'orçamento',dataPedido:hoje(),dataEnvio:'',valor:'',pgto:'pix_sinal',entregaForma:'',frete:'',freteServico:'',juros:'',entregues:[],envio:{cpf:'',cep:'',rua:'',numero:'',compl:'',bairro:'',cidade:'',uf:'',alt:'',larg:'',comp:'',peso:''},entrega:'',ideias:'',refs:[],entregues:[],ent:{pago:false,data:''},fim:{pago:false,data:''}}}
+function pNovo(){return {id:tk().slice(0,8),nome:'',status:'orçamento',dataPedido:hoje(),dataEnvio:'',valor:'',pgto:'pix_sinal',entregaForma:'',frete:'',freteServico:'',juros:'',entregues:[],envio:{cpf:'',cep:'',rua:'',numero:'',compl:'',bairro:'',cidade:'',uf:'',alt:'',larg:'',comp:'',peso:''},entrega:'',ideias:'',refs:[],entregues:[],andamento:[],ent:{pago:false,data:''},fim:{pago:false,data:''}}}
 function calc(p){var v=num(p.valor),fr=num(p.frete),m=p.pgto,ct=m==='cartao',all=m==='pix_total'||m==='normal',j=ct?num(p.juros)/100:0,base=m==='pix_total'?v*0.95:v,
   ent=all?base:base*0.4*(1+j),fim=all?fr:(base*0.6+fr)*(1+j),total=ent+fim,pago=(p.ent.pago?ent:0)+(p.fim.pago?fim:0);
   return {valor:v,desc:m==='pix_total'?v-base:0,jp:ct?num(p.juros):0,juros:total-(base+fr),base:base,frete:fr,ent:ent,fim:fim,total:total,pago:pago,saldo:total-pago,tot:all,
@@ -372,6 +372,7 @@ function normP(p){
     entregaForma:p.entregaForma||'',frete:p.frete||'',freteServico:p.freteServico||'',juros:p.juros||'',envio:Object.assign(pNovo().envio,p.envio||{}),entrega:p.entrega||'',dataPedido:p.dataPedido||'',dataEnvio:p.dataEnvio||'',ideias:[p.ideias,Array.isArray(p.links)?p.links.join(' '):p.links].filter(Boolean).join('\n'),
     refs:Array.isArray(p.refs)?p.refs.filter(function(x){return /^[a-f0-9]{24}$/.test(x)}):[],
     entregues:Array.isArray(p.entregues)?p.entregues.filter(function(x){return /^[a-f0-9]{24}$/.test(x)}):[],
+    andamento:Array.isArray(p.andamento)?p.andamento.filter(function(x){return x&&/^[a-f0-9]{24}$/.test(x.id)}).map(function(x){return {id:x.id,nota:String(x.nota||'').slice(0,140),data:x.data||''}}):[],
     ent:{pago:!!(p.ent&&p.ent.pago),data:(p.ent&&p.ent.data)||''},fim:{pago:!!(p.fim&&p.fim.pago),data:(p.fim&&p.fim.data)||''}};
   if(Array.isArray(p.pagos)&&!p.ent){var t=calc(o),pg=p.pagos.reduce(function(a,x){return a+num(x.v)},0);
     if(t.ent>0&&pg>=t.ent-.01)o.ent.pago=true;if(t.total>0&&pg>=t.total-.01){o.ent.pago=true;o.fim.pago=true}}
@@ -465,7 +466,7 @@ function pedido(pid){
   var c=cur;curP=c.pedidos.filter(function(x){return x.id===pid})[0];if(!curP)return perfil(c.id);var p=curP;
   var opts=Object.keys(STATUS).map(function(x){return '<option'+(x===p.status?' selected':'')+'>'+x+'</option>'}).join('');
   $('clientes').innerHTML=
-  '<div class="top"><button class="pill sm" id="volta">← '+esc(c.nome||'cliente')+'</button><div style="display:flex;gap:8px"><button class="pill sm" id="pdf">comprovante (PDF)</button><button class="pill sm" id="resumo">copiar resumo</button><button class="pill sm" id="del">excluir pedido</button></div></div><div class="grid">'+
+  '<div class="top"><button class="pill sm" id="volta">← '+esc(c.nome||'cliente')+'</button><div style="display:flex;gap:8px"><button class="pill sm" id="pdf">comprovante (PDF)</button><button class="pill sm" id="resumo">copiar resumo</button><button class="pill sm" id="wpp">avisar a cliente</button><button class="pill sm" id="del">excluir pedido</button></div></div><div class="grid">'+
   '<div class="card"><h2><span class="dot" style="background:var(--dot-lilac)"></span>pedido</h2><p class="hint">ex: set perolinha</p>'+
     '<div class="f"><label>nome do set</label><input data-k="nome" value="'+esc(p.nome)+'"></div><div class="grid" style="gap:12px"><div class="f"><label>status</label><select data-k="status">'+opts+'</select></div>'+
     '<div class="f"><label>entrega prevista</label><input type="date" data-k="entrega" value="'+esc(p.entrega)+'"></div></div>'+
@@ -481,20 +482,24 @@ function pedido(pid){
   '<div class="card"><h2><span class="dot" style="background:var(--dot-blue)"></span>referências</h2><p class="hint">fotos e ideias que a cliente mandou</p>'+
     '<div class="f"><textarea data-k="ideias" placeholder="cores, charms, formato, tamanho…">'+esc(p.ideias)+'</textarea></div>'+
     '<button class="pill sm" id="upb">+ adicionar imagens</button><input type="file" id="upf" accept="image/*" multiple class="hide"><div id="refs"></div></div>'+
+  '<div class="card"><h2><span class="dot" style="background:var(--dot-lilac)"></span>andamento</h2><p class="hint">fotos de como está ficando · a cliente acompanha na área dela</p><button class="pill sm" id="upb3">+ foto de andamento</button><input type="file" id="upf3" accept="image/*" multiple class="hide"><div id="andamento"></div></div>'+
   '<div class="card"><h2><span class="dot" style="background:var(--dot-green)"></span>o que foi entregue</h2><p class="hint">fotos do resultado · a cliente também vê</p><button class="pill sm" id="upb2">+ adicionar fotos</button><input type="file" id="upf2" accept="image/*" multiple class="hide"><div id="entregues"></div></div></div>';
-  bind(p,function(k){if(k==='pgto')$('jf').classList.toggle('hide',p.pgto!=='cartao');if(k==='entregaForma')$('envio').classList.toggle('hide',!envioVis(p));totais()});
+  bind(p,function(k){if(k==='pgto')$('jf').classList.toggle('hide',p.pgto!=='cartao');if(k==='entregaForma')$('envio').classList.toggle('hide',!envioVis(p));if(k==='status')wppBar(c,p);totais()});
   envioInit();
   $('volta').onclick=function(){perfil(c.id)};
-  $('del').onclick=function(){if(confirm('excluir este pedido?')){p.refs.concat(p.entregues).forEach(delImg);c.pedidos=c.pedidos.filter(function(x){return x!==p});save();perfil(c.id)}};
+  $('del').onclick=function(){if(confirm('excluir este pedido?')){p.refs.concat(p.entregues,(p.andamento||[]).map(function(x){return x.id})).forEach(delImg);c.pedidos=c.pedidos.filter(function(x){return x!==p});save();perfil(c.id)}};
   $('pdf').onclick=comprovante;
   $('upb').onclick=function(){$('upf').click()};
   $('upf').onchange=function(){if(this.files.length)subir(this.files,'refs','upb','refs')};
   $('upb2').onclick=function(){$('upf2').click()};
   $('upf2').onchange=function(){if(this.files.length)subir(this.files,'entregues','upb2','entregues')};
+  $('upb3').onclick=function(){$('upf3').click()};
+  $('upf3').onchange=function(){if(this.files.length)subir(this.files,'andamento','upb3','andamento')};
   $('resumo').onclick=function(){var t=calc(p),dd=function(x){return x.split('-').reverse().join('/')};
     var s='olá, '+c.nome+'! resumo do pedido '+p.nome+':\n\nvalor do set: '+brl(t.valor)+(t.desc?'\ndesconto pix (5%): −'+brl(t.desc):'')+'\n'+(t.lab1)+': '+brl(t.ent)+(t.fim>0.004?'\n'+(t.tot?'frete':'restante'+(t.frete?' + frete':''))+' na finalização: '+brl(t.fim):'')+
       (t.juros>0.009?'\njuros do cartão ('+t.jp+'%): '+brl(t.juros):'')+'\ntotal: '+brl(t.total)+(p.entregaForma?'\nentrega: '+p.entregaForma:'')+(p.entrega?' · prevista '+dd(p.entrega):'')+(p.dataEnvio?'\nenviado/entregue em '+dd(p.dataEnvio):'');
     navigator.clipboard.writeText(s).then(function(){$('resumo').textContent='copiado ✓';setTimeout(function(){$('resumo').textContent='copiar resumo'},1500)})};
+  $('wpp').onclick=function(){avisarCliente(c,p)};
   totais();refsDraw();
 }
 function totais(){
@@ -507,6 +512,36 @@ function totais(){
   var hj=hoje();
   $('c1').onchange=function(){p.ent={pago:this.checked,data:this.checked?hj:''};save();totais()};
   if($('c2'))$('c2').onchange=function(){p.fim={pago:this.checked,data:this.checked?hj:''};save();totais()};
+}
+
+
+/* ---------- avisar a cliente (texto pronto p/ whatsapp) ---------- */
+function msgStatus(c,p){
+  var nm=(c.nome||'').split(' ')[0]||'oi',set=p.nome||'seu pedido',st=p.status||'';
+  var extra={'orçamento':'separei um orçamento pra você — dá uma olhada na sua área! 💜',
+    'aprovado':'vou começar a produzir em breve! ✨',
+    'em produção':'já estou produzindo com todo carinho ✨',
+    'enviado':'já foi enviado'+(p.dataEnvio?' em '+p.dataEnvio.split('-').reverse().join('/'):'')+'! qualquer coisa me chama 💜',
+    'finalizado':'obrigada pela confiança! se puder, deixa sua avaliação na sua área, ela me ajuda muito 💜'}[st]||'';
+  return 'oi, '+nm+'! 💅 passando pra avisar do seu pedido "'+set+'": agora ele está *'+st+'*. '+extra;
+}
+function telWpp(t){var d=String(t||'').replace(/\D/g,'');if(d.length<10)return '';if(d.indexOf('55')!==0)d='55'+d;return d}
+function avisarCliente(c,p){
+  var m=msgStatus(c,p),tel=telWpp(c.tel);
+  navigator.clipboard.writeText(m).then(function(){var b=$('wpp');if(b){b.textContent='copiado ✓';setTimeout(function(){b.textContent='avisar a cliente'},1500)}});
+  if(tel)window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(m),'_blank');
+}
+function wppBar(c,p){
+  var old=$('wppbar');if(old)old.remove();
+  var tel=telWpp(c.tel),m=msgStatus(c,p);
+  var bar=document.createElement('div');bar.id='wppbar';bar.className='card';
+  bar.style.cssText='position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:60;max-width:min(480px,92vw);padding:14px 16px;box-shadow:0 12px 40px oklch(20% .05 300 / .25)';
+  bar.innerHTML='<p class="txt" style="margin:0 0 10px">status atualizado para <b>'+esc(p.status)+'</b> — quer avisar a '+esc((c.nome||'cliente').split(' ')[0])+'?</p>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="pill solid sm" id="wppcp">copiar texto</button>'+(tel?'<button class="pill sm" id="wppab">abrir whatsapp</button>':'')+'<button class="pill sm" id="wppx">agora não</button></div>';
+  document.body.appendChild(bar);
+  $('wppcp').onclick=function(){navigator.clipboard.writeText(m).then(function(){$('wppcp').textContent='copiado ✓';setTimeout(function(){bar.remove()},900)})};
+  if(tel)$('wppab').onclick=function(){window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(m),'_blank')};
+  $('wppx').onclick=function(){bar.remove()};
 }
 
 /* ---------- envio (Melhor Envio) ---------- */
@@ -595,7 +630,14 @@ function resize(file,cb){var r=new FileReader();r.onload=function(){var im=new I
     var cx=cv.getContext('2d');cx.fillStyle='#fff';cx.fillRect(0,0,cv.width,cv.height);cx.drawImage(im,0,0,cv.width,cv.height);out=cv.toDataURL('image/jpeg',tent[i][1]);if(out.length<700000)break}
   cb(out)};im.onerror=function(){cb(null)};im.src=r.result};r.onerror=function(){cb(null)};r.readAsDataURL(file)}
 function delImg(id){fetch('/api/upload?id='+id,{method:'DELETE'}).catch(function(){})}
-function refsDraw(){galDraw('refs','refs');galDraw('entregues','entregues')}
+function refsDraw(){galDraw('refs','refs');galDraw('entregues','entregues');andDraw()}
+function andDraw(){
+  var p=curP,el=$('andamento');if(!el||!p)return;if(!p.andamento)p.andamento=[];var l=p.andamento,dd=function(x){return (x||'').split('-').reverse().join('/')};
+  el.className='';
+  el.innerHTML=l.length?'<div class="thumbs">'+l.map(function(x,n){return '<div><div class="th"><a href="/api/img?id='+x.id+'" class="lbx"><img loading="lazy" alt="andamento" src="/api/img?id='+x.id+'"></a><button data-ar="'+n+'" aria-label="remover">✕</button></div><input data-an="'+n+'" maxlength="140" placeholder="recadinho (opcional)" value="'+esc(x.nota||'')+'" style="width:100%;margin-top:6px;font-size:12px;padding:6px 8px"><small class="muted">'+dd(x.data)+'</small></div>'}).join('')+'</div>':'<p class="muted" style="margin-top:12px">nenhuma foto de andamento ainda</p>';
+  [].forEach.call(el.querySelectorAll('[data-ar]'),function(b){b.onclick=function(){if(!confirm('remover esta foto?'))return;delImg(l.splice(+b.dataset.ar,1)[0].id);save();andDraw()}});
+  [].forEach.call(el.querySelectorAll('[data-an]'),function(i){i.onchange=function(){l[+i.dataset.an].nota=i.value.slice(0,140);save()}});
+}
 function galDraw(key,elId){
   var p=curP,el=$(elId);if(!el||!p)return;var l=p[key];
   el.className=l.length?'thumbs':'';
@@ -608,7 +650,7 @@ function subir(files,key,btnId,elId){
   [].slice.call(files).reduce(function(ch,f){return ch.then(function(){return new Promise(function(ok){resize(f,function(d){
     if(!d){alert('não consegui ler a imagem '+f.name);return ok()}
     fetch('/api/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:d})})
-    .then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok)throw new Error(r.status===404?'o arquivo api/upload.js não está publicado no site (erro 404)':r.status===401?'sessão expirada, entre de novo':(j.error||'erro '+r.status));return j})}).then(function(j){p[key].push(j.id);save();if(curP===p)galDraw(key,elId)})
+    .then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok)throw new Error(r.status===404?'o arquivo api/upload.js não está publicado no site (erro 404)':r.status===401?'sessão expirada, entre de novo':(j.error||'erro '+r.status));return j})}).then(function(j){if(key==='andamento'){(p.andamento=p.andamento||[]).push({id:j.id,nota:'',data:hoje()});save();if(curP===p)andDraw()}else{p[key].push(j.id);save();if(curP===p)galDraw(key,elId)}})
     .catch(function(e){alert('falha ao enviar '+f.name+': '+(e&&e.message||'erro desconhecido'))}).then(ok)})})})},Promise.resolve()).then(function(){if($(btnId))$(btnId).textContent=txt});
 }
 
