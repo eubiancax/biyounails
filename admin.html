@@ -436,7 +436,7 @@ function armarArrasto(){
 function arrasta(){
   var s=DRAG.card.style;
   DRAG.on=true;arrastou=true;clearTimeout(DRAG.timer);
-  s.transition='none';s.position='relative';s.zIndex='50';s.pointerEvents='none';s.opacity='.92';s.boxShadow='0 18px 40px rgba(0,0,0,.25)';s.cursor='grabbing';
+  s.transition='none';s.position='relative';s.zIndex='50';s.pointerEvents='none';s.opacity='.92';s.boxShadow='0 18px 40px rgba(0,0,0,.25)';
   if(navigator.vibrate)try{navigator.vibrate(15)}catch(e){}
   DRAG.auto=setInterval(function(){
     if(!DRAG)return;
@@ -475,7 +475,7 @@ function dragFim(){
   document.removeEventListener('pointermove',dragMove);
   document.removeEventListener('pointerup',dragSolta);
   document.removeEventListener('pointercancel',dragFim);
-  s.transform='';s.transition='';s.position='';s.zIndex='';s.pointerEvents='';s.opacity='';s.boxShadow='';s.cursor='grab';
+  s.transform='';s.transition='';s.position='';s.zIndex='';s.pointerEvents='';s.opacity='';s.boxShadow='';s.cursor='';
   if(d.over){d.over.style.outline='';d.over.style.outlineOffset=''}
   DRAG=null;
   if(was)setTimeout(function(){arrastou=false},150);
@@ -501,7 +501,7 @@ function lista(){
   if(!D.length)h+='<div class="card"><p class="muted" style="margin:0">nenhuma cliente ainda — clique em “nova cliente”.</p></div>';
   h+=barraOrdem();
   h+='<div class="grid three">'+ordenada().map(function(c){var t=calcC(c);
-    return '<div class="card click" data-id="'+c.id+'"'+(ORD==='manual'&&D.length>1?' style="user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:grab"':'')+'><h2 style="font-size:1.25rem">'+esc(c.nome||'sem nome')+'</h2><p class="hint">'+esc(c.insta)+'</p>'+
+    return '<div class="card click" data-id="'+c.id+'"'+(ORD==='manual'&&D.length>1?' style="user-select:none;-webkit-user-select:none;-webkit-touch-callout:none"':'')+'><h2 style="font-size:1.25rem">'+esc(c.nome||'sem nome')+'</h2><p class="hint">'+esc(c.insta)+'</p>'+
     '<div class="sum"><span>pedidos</span><span>'+c.pedidos.length+'</span></div><div class="sum"><span>pago</span><span>'+brl(t.pago)+'</span></div>'+
     '<div class="sum"><span>falta</span><b>'+brl(t.saldo)+'</b></div>'+'</div>'}).join('')+'</div>';
   $('clientes').innerHTML=h;
